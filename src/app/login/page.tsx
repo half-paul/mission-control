@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiClient } from "@/lib/api-client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -16,24 +17,26 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/v1/auth/login", {
+      const res = await apiClient.fetch("/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
+        credentials: "include", // Important: include cookies
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
-        setError(data.error || "Login failed");
+        const data = await res.json().catch(() => ({ error: "Login failed" }));
+        setError(data.error || "Invalid email or password");
         setLoading(false);
         return;
       }
 
       // Login successful - redirect to dashboard
       router.push("/");
+      router.refresh(); // Force refresh to update auth state
     } catch (err) {
-      setError("Network error. Please try again.");
+      console.error("Login error:", err);
+      setError("Network error. Please check your connection and try again.");
       setLoading(false);
     }
   };
@@ -106,8 +109,12 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-4 text-center text-xs text-zinc-500">
-          Demo credentials: paul@example.com / password123
+        <div className="mt-4 space-y-2 rounded-md border border-zinc-800 bg-zinc-900/50 p-3">
+          <p className="text-xs font-medium text-zinc-400">Demo Credentials:</p>
+          <div className="space-y-1 text-xs text-zinc-500">
+            <p><span className="font-mono text-zinc-400">paul@example.com</span> / password123 (Admin)</p>
+            <p><span className="font-mono text-zinc-400">logan@example.com</span> / password123 (Developer)</p>
+          </div>
         </div>
       </div>
     </div>
