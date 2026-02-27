@@ -26,7 +26,8 @@ async function fetchIssues(filters: IssueFilters = {}): Promise<Issue[]> {
     }
   });
 
-  return apiClient.get<Issue[]>(`/api/v1/issues?${params}`);
+  const response = await apiClient.get<{ data: Issue[] }>(`/api/v1/issues?${params}`);
+  return response.data;
 }
 
 async function createIssue(data: CreateIssue): Promise<Issue> {

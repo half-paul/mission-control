@@ -7,3 +7,9 @@ npm-debug.log
 README.md
 .gitignore
 .dockerignore
+tests
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+vitest.config.ts

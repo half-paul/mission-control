@@ -15,15 +15,15 @@ export interface LoginCredentials {
 export const TEST_USERS = {
   admin: {
     email: 'paul@example.com',
-    password: 'QA_Test_Pass_123', // Updated during QA testing
+    password: 'password123',
   },
   member: {
-    email: 'tom@example.com',
-    password: 'QA_Test_Pass_123',
+    email: 'logan@example.com',
+    password: 'password123',
   },
-  viewer: {
+  developer: {
     email: 'alex@example.com',
-    password: 'QA_Test_Pass_123',
+    password: 'password123',
   },
 } as const;
 

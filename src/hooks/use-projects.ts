@@ -3,7 +3,8 @@ import { Project } from "@/types";
 import { apiClient } from "@/lib/api-client";
 
 async function fetchProjects(): Promise<Project[]> {
-  return apiClient.get<Project[]>("/api/v1/projects");
+  const response = await apiClient.get<{ data: Project[] }>("/api/v1/projects");
+  return response.data;
 }
 
 export function useProjects() {

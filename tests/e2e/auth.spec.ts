@@ -154,7 +154,7 @@ test.describe('Authentication Flow', () => {
   });
 
   test('Different user roles can log in', async ({ page }) => {
-    const users = [TEST_USERS.admin, TEST_USERS.member, TEST_USERS.viewer];
+    const users = [TEST_USERS.admin, TEST_USERS.member, TEST_USERS.developer];
     
     for (const user of users) {
       // Clear session
