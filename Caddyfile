@@ -1,0 +1,41 @@
+# Mission Control - Caddy Reverse Proxy Configuration
+# Production Domains: mission-control.uchitel.ca, mission-control-api.uchitel.ca
+# Caddy automatically handles SSL/TLS certificates via Let's Encrypt
+
+# Portal (Frontend)
+mission-control.uchitel.ca {
+    # Reverse proxy to Next.js application
+    reverse_proxy localhost:4000
+    
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+    }
+    
+    # Logging
+    log {
+        output file /var/log/caddy/mission-control-portal-access.log
+    }
+}
+
+# API Backend (same Next.js app, different domain for CORS)
+mission-control-api.uchitel.ca {
+    # Reverse proxy to Next.js application
+    reverse_proxy localhost:4000
+    
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+    }
+    
+    # Logging
+    log {
+        output file /var/log/caddy/mission-control-api-access.log
+    }
+}

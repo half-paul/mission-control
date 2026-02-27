@@ -3,8 +3,41 @@ import { checkRateLimit } from "./lib/rate-limit";
 import { allowedOrigins } from "./lib/config";
 
 export function middleware(req: NextRequest) {
-  // Only apply to API routes
-  if (!req.nextUrl.pathname.startsWith("/api/v1")) {
+  const { pathname } = req.nextUrl;
+
+  // ──────────────────────────────────────────────────────────
+  // Auth Protection (Frontend Routes)
+  // ──────────────────────────────────────────────────────────
+  
+  // Public routes that don't require authentication
+  const publicRoutes = [
+    '/login',
+    '/api/v1/auth/login',
+    '/api/v1/auth/logout',
+  ];
+
+  // Static assets and Next.js internals (already excluded by matcher)
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+  const isApiRoute = pathname.startsWith('/api/v1');
+
+  // Check auth for protected frontend routes
+  if (!isPublicRoute && !isApiRoute) {
+    const token = req.cookies.get('mc-session'); // Cookie name from src/lib/auth.ts
+    
+    if (!token) {
+      // Redirect to login if no auth token
+      const loginUrl = new URL('/login', req.url);
+      loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────
+  // API Route Handling (CORS + Rate Limiting)
+  // ──────────────────────────────────────────────────────────
+
+  if (!isApiRoute) {
+    // Not an API route, skip CORS/rate limiting
     return NextResponse.next();
   }
 
@@ -14,11 +47,11 @@ export function middleware(req: NextRequest) {
   }
 
   // Skip rate limiting for SSE (long-lived connections)
-  if (req.nextUrl.pathname === "/api/v1/sse") {
+  if (pathname === "/api/v1/sse") {
     return handleCors(req, NextResponse.next());
   }
 
-  // #6: Rate limiting
+  // Rate limiting for API routes
   const rateLimitResponse = checkRateLimit(req);
   if (rateLimitResponse) return handleCors(req, rateLimitResponse);
 
@@ -40,5 +73,13 @@ function handleCors(req: NextRequest, response: NextResponse): NextResponse {
 }
 
 export const config = {
-  matcher: "/api/v1/:path*",
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico, robots.txt, etc.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt).*)',
+  ],
 };
