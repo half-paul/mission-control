@@ -16,7 +16,9 @@ The Mission Control frontend now uses environment variables to configure API end
 
 **Purpose:** Base URL for all API requests from the browser
 
-**Format:** `http://localhost:4000` (development) or `https://mission-control-api.uchitel.ca` (production)
+**Format:** 
+- **Development:** `http://localhost:3000` (Next.js dev server - monolith architecture)
+- **Production:** `https://mission-control-api.uchitel.ca` (separate deployment)
 
 **Required:** Yes (with fallback to `http://localhost:4000`)
 
@@ -31,7 +33,9 @@ The Mission Control frontend now uses environment variables to configure API end
 ```bash
 # API Configuration (Frontend)
 # Base URL for API requests from the browser
-NEXT_PUBLIC_API_URL=http://localhost:4000
+# Development: Same as Next.js dev server (monolith architecture)
+# Production: Separate API domain
+NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
 **Purpose:** Template for developers to copy to `.env.local`
@@ -41,7 +45,7 @@ NEXT_PUBLIC_API_URL=http://localhost:4000
 ### `.env.local` (Development)
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
 **Purpose:** Local development configuration

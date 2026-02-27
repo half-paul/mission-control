@@ -2,13 +2,14 @@
  * API Client Configuration
  * 
  * Uses NEXT_PUBLIC_API_URL environment variable to configure the base URL
- * for all API requests. Falls back to localhost:4000 for local development.
+ * for all API requests. Falls back to localhost:3000 for local development
+ * (Next.js dev server with API routes).
  * 
  * Production deployment should set:
  * NEXT_PUBLIC_API_URL=https://mission-control-api.uchitel.ca
  */
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 /**
  * API Client helper for making requests
