@@ -22,10 +22,19 @@ export default function ProjectsPage() {
   if (error) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <p className="text-sm text-red-500">
-            Failed to load projects: {(error as Error).message}
+        <div className="rounded-lg border border-red-800 bg-red-950/50 p-6 text-center">
+          <p className="mb-2 text-lg font-semibold text-red-400">
+            Failed to load projects
           </p>
+          <p className="text-sm text-red-500">
+            {(error as Error)?.message || 'An unknown error occurred'}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );

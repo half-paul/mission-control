@@ -38,7 +38,10 @@ export const apiClient = {
    * Fetch helper with automatic URL prefixing
    */
   async fetch(path: string, options?: RequestInit): Promise<Response> {
-    return fetch(this.url(path), options);
+    return fetch(this.url(path), {
+      ...options,
+      credentials: 'include', // Always include cookies for authentication
+    });
   },
 
   /**
@@ -49,6 +52,15 @@ export const apiClient = {
       ...options,
       method: 'GET',
     });
+    
+    // Handle 401 Unauthorized - redirect to login
+    if (res.status === 401) {
+      if (typeof window !== 'undefined') {
+        window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+      }
+      throw new Error('Authentication required');
+    }
+    
     if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`);
     return res.json();
   },
