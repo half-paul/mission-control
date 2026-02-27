@@ -99,7 +99,17 @@ export async function GET(req: NextRequest) {
       })),
       overdueIssues,
       criticalIssues,
-      recentActivity,
+      recentActivity: recentActivity.map((activity) => {
+        const metadata = activity.metadata as any;
+        return {
+          type: activity.eventType,
+          actor: activity.actorName || "Unknown",
+          timestamp: activity.createdAt,
+          issue: metadata?.issue_key,
+          from: metadata?.from_status,
+          to: metadata?.to_status,
+        };
+      }),
       myIssues,
     });
   } catch (err) {
