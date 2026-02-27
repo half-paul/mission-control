@@ -112,8 +112,8 @@ export default function LoginPage() {
         <div className="mt-4 space-y-2 rounded-md border border-zinc-800 bg-zinc-900/50 p-3">
           <p className="text-xs font-medium text-zinc-400">Demo Credentials:</p>
           <div className="space-y-1 text-xs text-zinc-500">
-            <p><span className="font-mono text-zinc-400">paul@example.com</span> / password123 (Admin)</p>
-            <p><span className="font-mono text-zinc-400">logan@example.com</span> / password123 (Developer)</p>
+            <p><span className="font-mono text-zinc-400">paul@example.com</span> / Password123! (Admin)</p>
+            <p><span className="font-mono text-zinc-400">logan@example.com</span> / Password123! (Developer)</p>
           </div>
         </div>
       </div>

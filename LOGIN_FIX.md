@@ -73,7 +73,7 @@ npm run dev
 
 **Credentials:**
 - **Email:** `paul@example.com`
-- **Password:** `password123`
+- **Password:** `Password123!`
 
 **After login:** Should redirect to dashboard (http://localhost:3000)
 
@@ -81,7 +81,7 @@ npm run dev
 
 ## All Available Demo Users
 
-All users have password: `password123`
+All users have password: `Password123!`
 
 | Email | Role | Agent ID |
 |-------|------|----------|

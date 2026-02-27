@@ -97,16 +97,16 @@ npm run dev
 
 | Email | Password | Role |
 |-------|----------|------|
-| paul@example.com | password123 | Admin |
-| david@example.com | password123 | Member (System Architect) |
-| dana@example.com | password123 | Member (Database Engineer) |
-| logan@example.com | password123 | Member (Backend Developer) |
-| alex@example.com | password123 | Member (Frontend Developer) |
-| rex@example.com | password123 | Member (Code Reviewer) |
-| tom@example.com | password123 | Member (QA Engineer) |
-| bruce@example.com | password123 | Member (PM/Product Owner) |
+| paul@example.com | Password123! | Admin |
+| david@example.com | Password123! | Member (System Architect) |
+| dana@example.com | Password123! | Member (Database Engineer) |
+| logan@example.com | Password123! | Member (Backend Developer) |
+| alex@example.com | Password123! | Member (Frontend Developer) |
+| rex@example.com | Password123! | Member (Code Reviewer) |
+| tom@example.com | Password123! | Member (QA Engineer) |
+| bruce@example.com | Password123! | Member (PM/Product Owner) |
 
-**All passwords:** `password123`
+**All passwords:** `Password123!`
 
 ---
 
