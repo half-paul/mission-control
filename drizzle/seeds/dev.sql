@@ -1,13 +1,15 @@
--- Seed members (team) — password is "password123" bcrypt hashed
+-- Seed members (team)
+-- All passwords: "Password123!" (meets 12+ char, upper, lower, number, symbol requirement)
+-- Bcrypt hash: $2b$12$0JeTW8U6DQ0pHZcFYxlgoOtWaIioDkOc.1kUuq/oTQlhl0b2OIKuS
 INSERT INTO members (id, email, password_hash, name, avatar_url, role, agent_id) VALUES
-  ('550e8400-e29b-41d4-a716-446655440001', 'paul@example.com',   '$2b$12$LJ3m4ys3Lf0Xg3YdeZMHiOQbGMaxMRo1QmRGBH3BQWCZpGxTMWdWy', 'Paul',   NULL, 'admin',  NULL),
-  ('550e8400-e29b-41d4-a716-446655440002', 'david@example.com',  '$2b$12$LJ3m4ys3Lf0Xg3YdeZMHiOQbGMaxMRo1QmRGBH3BQWCZpGxTMWdWy', 'David',  NULL, 'member', 'david'),
-  ('550e8400-e29b-41d4-a716-446655440003', 'dana@example.com',   '$2b$12$LJ3m4ys3Lf0Xg3YdeZMHiOQbGMaxMRo1QmRGBH3BQWCZpGxTMWdWy', 'Dana',   NULL, 'member', 'dana'),
-  ('550e8400-e29b-41d4-a716-446655440004', 'logan@example.com',  '$2b$12$LJ3m4ys3Lf0Xg3YdeZMHiOQbGMaxMRo1QmRGBH3BQWCZpGxTMWdWy', 'Logan',  NULL, 'member', 'logan'),
-  ('550e8400-e29b-41d4-a716-446655440005', 'alex@example.com',   '$2b$12$LJ3m4ys3Lf0Xg3YdeZMHiOQbGMaxMRo1QmRGBH3BQWCZpGxTMWdWy', 'Alex',   NULL, 'member', 'alex'),
-  ('550e8400-e29b-41d4-a716-446655440006', 'rex@example.com',    '$2b$12$LJ3m4ys3Lf0Xg3YdeZMHiOQbGMaxMRo1QmRGBH3BQWCZpGxTMWdWy', 'Rex',    NULL, 'member', 'rex'),
-  ('550e8400-e29b-41d4-a716-446655440007', 'tom@example.com',    '$2b$12$LJ3m4ys3Lf0Xg3YdeZMHiOQbGMaxMRo1QmRGBH3BQWCZpGxTMWdWy', 'Tom',    NULL, 'member', 'tom'),
-  ('550e8400-e29b-41d4-a716-446655440008', 'bruce@example.com',  '$2b$12$LJ3m4ys3Lf0Xg3YdeZMHiOQbGMaxMRo1QmRGBH3BQWCZpGxTMWdWy', 'Bruce',  NULL, 'member', 'bruce')
+  ('550e8400-e29b-41d4-a716-446655440001', 'paul@example.com',   '$2b$12$0JeTW8U6DQ0pHZcFYxlgoOtWaIioDkOc.1kUuq/oTQlhl0b2OIKuS', 'Paul',   NULL, 'admin',  NULL),
+  ('550e8400-e29b-41d4-a716-446655440002', 'david@example.com',  '$2b$12$0JeTW8U6DQ0pHZcFYxlgoOtWaIioDkOc.1kUuq/oTQlhl0b2OIKuS', 'David',  NULL, 'member', 'david'),
+  ('550e8400-e29b-41d4-a716-446655440003', 'dana@example.com',   '$2b$12$0JeTW8U6DQ0pHZcFYxlgoOtWaIioDkOc.1kUuq/oTQlhl0b2OIKuS', 'Dana',   NULL, 'member', 'dana'),
+  ('550e8400-e29b-41d4-a716-446655440004', 'logan@example.com',  '$2b$12$0JeTW8U6DQ0pHZcFYxlgoOtWaIioDkOc.1kUuq/oTQlhl0b2OIKuS', 'Logan',  NULL, 'member', 'logan'),
+  ('550e8400-e29b-41d4-a716-446655440005', 'alex@example.com',   '$2b$12$0JeTW8U6DQ0pHZcFYxlgoOtWaIioDkOc.1kUuq/oTQlhl0b2OIKuS', 'Alex',   NULL, 'member', 'alex'),
+  ('550e8400-e29b-41d4-a716-446655440006', 'rex@example.com',    '$2b$12$0JeTW8U6DQ0pHZcFYxlgoOtWaIioDkOc.1kUuq/oTQlhl0b2OIKuS', 'Rex',    NULL, 'member', 'rex'),
+  ('550e8400-e29b-41d4-a716-446655440007', 'tom@example.com',    '$2b$12$0JeTW8U6DQ0pHZcFYxlgoOtWaIioDkOc.1kUuq/oTQlhl0b2OIKuS', 'Tom',    NULL, 'member', 'tom'),
+  ('550e8400-e29b-41d4-a716-446655440008', 'bruce@example.com',  '$2b$12$0JeTW8U6DQ0pHZcFYxlgoOtWaIioDkOc.1kUuq/oTQlhl0b2OIKuS', 'Bruce',  NULL, 'member', 'bruce')
 ON CONFLICT (email) DO NOTHING;
 
 -- Seed labels
