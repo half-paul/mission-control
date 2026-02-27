@@ -67,14 +67,14 @@ export interface Project {
   name: string;
   description: string | null;
   status: "active" | "archived";
-  owner: {
-    id: string;
-    name: string;
-  };
+  ownerId: string;
+  ownerName: string | null;
   startDate: string | null;
   targetDate: string | null;
   progress: number;
-  stats: {
+  totalIssues: number;
+  doneIssues: number;
+  stats?: {
     total: number;
     backlog: number;
     todo: number;

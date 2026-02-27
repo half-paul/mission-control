@@ -57,12 +57,16 @@ export function ProjectCard({ project }: ProjectCardProps) {
       </div>
 
       <div className="flex items-center justify-between text-sm text-zinc-400">
-        <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-800 text-xs font-medium text-zinc-50">
-            {project.owner.name[0]}
+        {project.ownerName ? (
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-800 text-xs font-medium text-zinc-50">
+              {project.ownerName[0]?.toUpperCase()}
+            </div>
+            <span>{project.ownerName}</span>
           </div>
-          <span>{project.owner.name}</span>
-        </div>
+        ) : (
+          <span className="text-zinc-500">No owner</span>
+        )}
         <span>
           Updated{" "}
           {formatDistanceToNow(new Date(project.updatedAt), {
@@ -72,11 +76,15 @@ export function ProjectCard({ project }: ProjectCardProps) {
       </div>
 
       <div className="mt-4 flex items-center gap-4 text-xs text-zinc-500">
-        <span>{project.stats.total} issues</span>
+        <span>{project.totalIssues || 0} issues</span>
         <span>•</span>
-        <span>{project.stats.done} completed</span>
-        <span>•</span>
-        <span>{project.stats.in_progress} in progress</span>
+        <span>{project.doneIssues || 0} completed</span>
+        {project.stats && (
+          <>
+            <span>•</span>
+            <span>{project.stats.in_progress || 0} in progress</span>
+          </>
+        )}
       </div>
     </Link>
   );
