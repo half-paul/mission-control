@@ -1,0 +1,44 @@
+"use client";
+
+import { useIssues } from "@/hooks/use-issues";
+import { KanbanBoard } from "@/components/board/kanban-board";
+
+export default function BoardPage() {
+  const { data: issues, isLoading, error } = useIssues();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-zinc-800 border-t-blue-500" />
+          <p className="text-sm text-zinc-400">Loading board...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <p className="text-sm text-red-500">
+            Failed to load board: {(error as Error).message}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-zinc-50">Board</h1>
+        <p className="mt-2 text-zinc-400">
+          Drag and drop issues to update their status
+        </p>
+      </div>
+
+      <KanbanBoard issues={issues || []} />
+    </div>
+  );
+}
