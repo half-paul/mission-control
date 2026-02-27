@@ -1,6 +1,11 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Pass client-side API URL at build time (empty = relative URLs)
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
     ports:
       - "4000:3000"
     environment:
@@ -9,10 +14,9 @@ services:
       # Single container deployment: Frontend + API at same URL
       - BASE_URL=${BASE_URL:-http://localhost:4000}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-${BASE_URL:-http://localhost:4000}}
-      # Client-side API URL (leave empty to use relative URLs in same container)
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-}
       - NODE_ENV=production
       - PROJECTS_PATH=/data/projects
+      # Note: NEXT_PUBLIC_* vars are set at BUILD time (see build.args above)
     volumes:
       - /home/paul/.openclaw/workspace/projects:/data/projects:ro
     depends_on:

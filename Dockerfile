@@ -9,9 +9,15 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Build-time environment variables
 ENV NODE_ENV=production
 ENV NEXTAUTH_SECRET=build-time-dummy-secret-at-least-32-chars-long
-ENV NEXT_PUBLIC_API_URL=http://localhost:3000
+
+# Client-side API URL (empty = relative URLs for single-container deployment)
+ARG NEXT_PUBLIC_API_URL=
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 RUN npm run build
 
 FROM base AS runner
@@ -21,4 +27,4 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 EXPOSE 3000
-CMD ["node", ".openclaw/workspace/projects/mission-control/server.js"]
+CMD ["node", "server.js"]
