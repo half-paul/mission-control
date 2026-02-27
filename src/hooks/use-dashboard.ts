@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { DashboardData } from "@/types";
+import { apiClient } from "@/lib/api-client";
 
 async function fetchDashboard(): Promise<DashboardData> {
-  const res = await fetch("/api/v1/dashboard");
-  if (!res.ok) throw new Error("Failed to fetch dashboard data");
-  return res.json();
+  return apiClient.get<DashboardData>("/api/v1/dashboard");
 }
 
 export function useDashboard() {

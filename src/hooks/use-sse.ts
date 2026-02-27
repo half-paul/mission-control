@@ -3,12 +3,13 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { SSEEvent } from "@/types";
+import { apiClient } from "@/lib/api-client";
 
 export function useSSE() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const eventSource = new EventSource("/api/v1/sse");
+    const eventSource = new EventSource(apiClient.url("/api/v1/sse"));
 
     eventSource.onmessage = (event) => {
       try {

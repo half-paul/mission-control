@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { Project } from "@/types";
+import { apiClient } from "@/lib/api-client";
 
 async function fetchProjects(): Promise<Project[]> {
-  const res = await fetch("/api/v1/projects");
-  if (!res.ok) throw new Error("Failed to fetch projects");
-  return res.json();
+  return apiClient.get<Project[]>("/api/v1/projects");
 }
 
 export function useProjects() {

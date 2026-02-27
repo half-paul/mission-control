@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Issue, CreateIssue, UpdateIssue } from "@/types";
+import { apiClient } from "@/lib/api-client";
 
 interface IssueFilters {
   status?: string[];
@@ -25,19 +26,11 @@ async function fetchIssues(filters: IssueFilters = {}): Promise<Issue[]> {
     }
   });
 
-  const res = await fetch(`/api/v1/issues?${params}`);
-  if (!res.ok) throw new Error("Failed to fetch issues");
-  return res.json();
+  return apiClient.get<Issue[]>(`/api/v1/issues?${params}`);
 }
 
 async function createIssue(data: CreateIssue): Promise<Issue> {
-  const res = await fetch("/api/v1/issues", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error("Failed to create issue");
-  return res.json();
+  return apiClient.post<Issue>("/api/v1/issues", data);
 }
 
 async function updateIssue({
@@ -47,13 +40,7 @@ async function updateIssue({
   id: string;
   data: UpdateIssue;
 }): Promise<Issue> {
-  const res = await fetch(`/api/v1/issues/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error("Failed to update issue");
-  return res.json();
+  return apiClient.patch<Issue>(`/api/v1/issues/${id}`, data);
 }
 
 async function updateIssueStatus({
@@ -63,13 +50,7 @@ async function updateIssueStatus({
   id: string;
   status: string;
 }): Promise<Issue> {
-  const res = await fetch(`/api/v1/issues/${id}/status`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status }),
-  });
-  if (!res.ok) throw new Error("Failed to update issue status");
-  return res.json();
+  return apiClient.patch<Issue>(`/api/v1/issues/${id}/status`, { status });
 }
 
 export function useIssues(filters: IssueFilters = {}) {
