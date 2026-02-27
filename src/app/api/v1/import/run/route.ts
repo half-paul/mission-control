@@ -6,7 +6,7 @@ import { projects, issues, labels, issueLabels, importRuns, members } from "@/li
 import { detectFormat, parseSprintBased, parseSessionBased, DEFAULT_AGENT_MAP } from "@/lib/import";
 import { logActivity } from "@/lib/activity";
 import { handleError, errorResponse } from "@/lib/errors";
-import { requireAuth, requireWrite } from "@/lib/auth";
+import { requireAuth, requireWrite, requireProjectAccess } from "@/lib/auth";
 import { validateProjectPath } from "@/lib/path-security";
 import { sanitizeText, sanitizeMarkdown } from "@/lib/sanitize";
 import { eq, and, isNull, sql } from "drizzle-orm";
@@ -60,8 +60,14 @@ export async function POST(req: NextRequest) {
       return errorResponse(400, "Unknown STATUS.md format");
     }
 
-    // Ensure project exists
+    // If importing to existing project, verify ownership
     let targetProjectId = projectId;
+    if (targetProjectId) {
+      const accessCheck = await requireProjectAccess(authResult, targetProjectId);
+      if (accessCheck) return accessCheck;
+    }
+
+    // Ensure project exists
     if (!targetProjectId) {
       const [existing] = await db
         .select({ id: projects.id })

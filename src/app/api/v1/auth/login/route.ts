@@ -15,8 +15,11 @@ const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 
 export async function POST(req: NextRequest) {
   try {
-    // Rate limit check
-    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
+    // Rate limit check — use rightmost IP (hardest to spoof)
+    const forwarded = req.headers.get("x-forwarded-for");
+    const ip = forwarded
+      ? forwarded.split(",").map((s) => s.trim()).pop() || "unknown"
+      : req.headers.get("x-real-ip") || "unknown";
     const now = Date.now();
     const attempts = loginAttempts.get(ip);
 

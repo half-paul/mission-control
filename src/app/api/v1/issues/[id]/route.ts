@@ -4,7 +4,7 @@ import { issues, projects, members, labels, issueLabels } from "@/lib/db/schema"
 import { updateIssueSchema } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
 import { handleError, errorResponse } from "@/lib/errors";
-import { requireAuth, requireWrite } from "@/lib/auth";
+import { requireAuth, requireWrite, requireIssueAccess } from "@/lib/auth";
 import { sanitizeText, sanitizeMarkdown } from "@/lib/sanitize";
 import { eq, and, isNull, inArray, sql } from "drizzle-orm";
 
@@ -78,14 +78,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (writeCheck) return writeCheck;
 
     const { id } = await params;
+
+    // IDOR check: only assignee, creator, project owner, or admin can modify
+    const accessCheck = await requireIssueAccess(authResult, id);
+    if (accessCheck) return accessCheck;
+
     const body = await req.json();
     const data = updateIssueSchema.parse(body);
-
-    const [existing] = await db
-      .select({ id: issues.id })
-      .from(issues)
-      .where(and(eq(issues.id, id), isNull(issues.deletedAt)));
-    if (!existing) return errorResponse(404, "Issue not found");
 
     const updateData: Record<string, unknown> = {};
     if (data.title !== undefined) updateData.title = sanitizeText(data.title);
@@ -135,6 +134,11 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     if (writeCheck) return writeCheck;
 
     const { id } = await params;
+
+    // IDOR check: only assignee, creator, project owner, or admin can delete
+    const accessCheck = await requireIssueAccess(authResult, id);
+    if (accessCheck) return accessCheck;
+
     const [existing] = await db
       .select({ id: issues.id, key: issues.key })
       .from(issues)

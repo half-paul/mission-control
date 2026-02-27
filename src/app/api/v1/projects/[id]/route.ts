@@ -4,7 +4,7 @@ import { projects, members, issues } from "@/lib/db/schema";
 import { updateProjectSchema } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
 import { handleError, errorResponse } from "@/lib/errors";
-import { requireAuth, requireWrite } from "@/lib/auth";
+import { requireAuth, requireWrite, requireProjectAccess } from "@/lib/auth";
 import { sanitizeText, sanitizeMarkdown } from "@/lib/sanitize";
 import { eq, and, isNull, sql } from "drizzle-orm";
 
@@ -75,14 +75,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (writeCheck) return writeCheck;
 
     const { id } = await params;
+
+    // IDOR check: only project owner or admin can modify
+    const accessCheck = await requireProjectAccess(authResult, id);
+    if (accessCheck) return accessCheck;
+
     const body = await req.json();
     const data = updateProjectSchema.parse(body);
-
-    const [existing] = await db
-      .select({ id: projects.id })
-      .from(projects)
-      .where(and(eq(projects.id, id), isNull(projects.deletedAt)));
-    if (!existing) return errorResponse(404, "Project not found");
 
     const updateData: Record<string, unknown> = { ...data };
     if (data.name) updateData.name = sanitizeText(data.name);
@@ -114,6 +113,11 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     if (writeCheck) return writeCheck;
 
     const { id } = await params;
+
+    // IDOR check: only project owner or admin can delete
+    const accessCheck = await requireProjectAccess(authResult, id);
+    if (accessCheck) return accessCheck;
+
     const [existing] = await db
       .select({ id: projects.id, key: projects.key })
       .from(projects)

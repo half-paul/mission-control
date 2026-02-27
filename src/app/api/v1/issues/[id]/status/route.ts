@@ -4,7 +4,7 @@ import { issues } from "@/lib/db/schema";
 import { transitionStatusSchema, canTransition, STATUS_TRANSITIONS, IssueStatus } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
 import { handleError, errorResponse } from "@/lib/errors";
-import { requireAuth, requireWrite } from "@/lib/auth";
+import { requireAuth, requireWrite, requireIssueAccess } from "@/lib/auth";
 import { eq, and, isNull } from "drizzle-orm";
 
 type Params = { params: Promise<{ id: string }> };
@@ -18,6 +18,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (writeCheck) return writeCheck;
 
     const { id } = await params;
+
+    // IDOR check
+    const accessCheck = await requireIssueAccess(authResult, id);
+    if (accessCheck) return accessCheck;
+
     const body = await req.json();
     const { status: newStatus } = transitionStatusSchema.parse(body);
 

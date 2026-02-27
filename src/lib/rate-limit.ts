@@ -17,8 +17,19 @@ setInterval(() => {
   }
 }, 60_000);
 
+function getClientIp(req: NextRequest): string {
+  // Use rightmost IP from x-forwarded-for (closest to our server, hardest to spoof)
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const ips = forwarded.split(",").map((ip) => ip.trim());
+    // Rightmost non-private IP is the most trustworthy
+    return ips[ips.length - 1] || "unknown";
+  }
+  return req.headers.get("x-real-ip") || "unknown";
+}
+
 export function checkRateLimit(req: NextRequest): NextResponse | null {
-  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
+  const ip = getClientIp(req);
   const now = Date.now();
 
   let entry = store.get(ip);
