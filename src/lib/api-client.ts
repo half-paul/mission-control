@@ -1,15 +1,22 @@
 /**
  * API Client Configuration
  * 
- * Uses NEXT_PUBLIC_API_URL environment variable to configure the base URL
- * for all API requests. Falls back to localhost:3000 for local development
- * (Next.js dev server with API routes).
+ * Single Container Deployment (default):
+ * - Frontend and API run in the same container (Next.js with API routes)
+ * - NEXT_PUBLIC_API_URL defaults to empty string → uses relative URLs
+ * - Example: fetch('/api/v1/projects') → same origin
  * 
- * Production deployment should set:
- * NEXT_PUBLIC_API_URL=https://mission-control-api.uchitel.ca
+ * Multi-Container Deployment (optional):
+ * - Frontend and API run separately
+ * - Set NEXT_PUBLIC_API_URL=https://api.example.com
+ * - Example: fetch('/api/v1/projects') → https://api.example.com/api/v1/projects
+ * 
+ * Environment Variables:
+ * - BASE_URL: Public base URL (e.g., https://mission-control.uchitel.ca)
+ * - NEXT_PUBLIC_API_URL: Optional API URL (empty = same origin, relative URLs)
  */
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 /**
  * API Client helper for making requests

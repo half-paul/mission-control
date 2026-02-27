@@ -2,13 +2,16 @@ services:
   app:
     build: .
     ports:
-      - "3000:3000"
+      - "4000:3000"
     environment:
       - DATABASE_URL=postgresql://mc:mc@postgres:5432/mission_control
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-dev-secret-change-me}
-      - API_URL=${API_URL:-http://localhost:3000}
-      - PORTAL_URL=${PORTAL_URL:-http://localhost:3000}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-2lXD1LzmlHpG+vVmWTkA/xg3DRBs2YzQulyA9vkHEmA=}
+      # Single container deployment: Frontend + API at same URL
+      - BASE_URL=${BASE_URL:-http://localhost:4000}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-${BASE_URL:-http://localhost:4000}}
+      # Client-side API URL (leave empty to use relative URLs in same container)
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-}
+      - NODE_ENV=production
       - PROJECTS_PATH=/data/projects
     volumes:
       - /home/paul/.openclaw/workspace/projects:/data/projects:ro
@@ -22,8 +25,8 @@ services:
       POSTGRES_DB: mission_control
       POSTGRES_USER: mc
       POSTGRES_PASSWORD: mc
-    ports:
-      - "5434:5432"
+    #ports:
+    #  - "5434:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

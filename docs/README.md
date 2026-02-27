@@ -5,6 +5,7 @@ Comprehensive documentation for the Mission Control project management system.
 ## Getting Started
 
 - **[Quick Start Guide](QUICK_START.md)** — Get Mission Control running in minutes
+- **[Deployment Configuration](DEPLOYMENT_CONFIGURATION.md)** — Single vs multi-container setup, environment variables
 - **[Production Deployment](PRODUCTION.md)** — Production deployment guide, credentials, and maintenance
 - **[Production Domains](PRODUCTION-DOMAINS.md)** — External domain configuration
 
