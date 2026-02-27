@@ -4,6 +4,7 @@ import { members } from "./db/schema";
 import { eq, and, isNull } from "drizzle-orm";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
+import { config } from "./config";
 
 // #3: JWT secret management — enforce strong secret in production
 const rawSecret = process.env.NEXTAUTH_SECRET;

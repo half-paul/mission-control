@@ -1,6 +1,7 @@
 import { resolve, relative } from "path";
+import { config } from "./config";
 
-const PROJECTS_PATH = process.env.PROJECTS_PATH || "/data/projects";
+const PROJECTS_PATH = config.projectsPath;
 
 /**
  * Validates that a given path is within the allowed projects directory.

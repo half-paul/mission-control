@@ -1,8 +1,9 @@
 import { readdir, access, stat } from "fs/promises";
 import { join } from "path";
 import { ProjectSource } from "./types";
+import { config } from "../config";
 
-const PROJECTS_PATH = process.env.PROJECTS_PATH || "/data/projects";
+const PROJECTS_PATH = config.projectsPath;
 
 export async function discoverProjects(): Promise<ProjectSource[]> {
   const sources: ProjectSource[] = [];

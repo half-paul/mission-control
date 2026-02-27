@@ -1,0 +1,26 @@
+FROM node:25-alpine
+
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json ./
+
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build the application (use dummy secret for build, real one at runtime)
+ARG NEXTAUTH_SECRET=build-time-dummy-secret-minimum-32-characters-long
+ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+RUN npm run build
+ENV NEXTAUTH_SECRET=
+
+ENV NODE_ENV=production
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
