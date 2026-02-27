@@ -4,11 +4,16 @@ import { projects, members, issues } from "@/lib/db/schema";
 import { createProjectSchema } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
 import { handleError } from "@/lib/errors";
+import { requireAuth, requireWrite } from "@/lib/auth";
+import { sanitizeText, sanitizeMarkdown } from "@/lib/sanitize";
 import { eq, and, isNull, sql } from "drizzle-orm";
 
 // GET /api/v1/projects
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+
     const rows = await db
       .select({
         id: projects.id,
@@ -46,24 +51,29 @@ export async function GET() {
 // POST /api/v1/projects
 export async function POST(req: NextRequest) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+    const writeCheck = requireWrite(authResult);
+    if (writeCheck) return writeCheck;
+
     const body = await req.json();
     const data = createProjectSchema.parse(body);
 
     const [project] = await db
       .insert(projects)
       .values({
-        key: data.key,
-        name: data.name,
-        description: data.description,
+        key: sanitizeText(data.key),
+        name: sanitizeText(data.name),
+        description: sanitizeMarkdown(data.description),
         status: data.status,
         ownerId: data.ownerId,
         startDate: data.startDate,
         targetDate: data.targetDate,
-        createdBy: data.ownerId,
+        createdBy: authResult.id,
       })
       .returning();
 
-    await logActivity("project_created", "project", project.id, data.ownerId, {
+    await logActivity("project_created", "project", project.id, authResult.id, {
       project_key: data.key,
       name: data.name,
     });

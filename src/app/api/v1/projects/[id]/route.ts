@@ -4,13 +4,18 @@ import { projects, members, issues } from "@/lib/db/schema";
 import { updateProjectSchema } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
 import { handleError, errorResponse } from "@/lib/errors";
+import { requireAuth, requireWrite } from "@/lib/auth";
+import { sanitizeText, sanitizeMarkdown } from "@/lib/sanitize";
 import { eq, and, isNull, sql } from "drizzle-orm";
 
 type Params = { params: Promise<{ id: string }> };
 
 // GET /api/v1/projects/[id]
-export async function GET(_req: NextRequest, { params }: Params) {
+export async function GET(req: NextRequest, { params }: Params) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+
     const { id } = await params;
     const [row] = await db
       .select({
@@ -64,6 +69,11 @@ export async function GET(_req: NextRequest, { params }: Params) {
 // PATCH /api/v1/projects/[id]
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+    const writeCheck = requireWrite(authResult);
+    if (writeCheck) return writeCheck;
+
     const { id } = await params;
     const body = await req.json();
     const data = updateProjectSchema.parse(body);
@@ -74,13 +84,17 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       .where(and(eq(projects.id, id), isNull(projects.deletedAt)));
     if (!existing) return errorResponse(404, "Project not found");
 
+    const updateData: Record<string, unknown> = { ...data };
+    if (data.name) updateData.name = sanitizeText(data.name);
+    if (data.description !== undefined) updateData.description = sanitizeMarkdown(data.description);
+
     const [updated] = await db
       .update(projects)
-      .set(data)
+      .set(updateData)
       .where(eq(projects.id, id))
       .returning();
 
-    await logActivity("project_updated", "project", id, null, {
+    await logActivity("project_updated", "project", id, authResult.id, {
       project_key: updated.key,
       changes: Object.keys(data),
     });
@@ -92,8 +106,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 // DELETE /api/v1/projects/[id] — Soft delete (archive)
-export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function DELETE(req: NextRequest, { params }: Params) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+    const writeCheck = requireWrite(authResult);
+    if (writeCheck) return writeCheck;
+
     const { id } = await params;
     const [existing] = await db
       .select({ id: projects.id, key: projects.key })
@@ -106,7 +125,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
       .set({ deletedAt: sql`now()` })
       .where(eq(projects.id, id));
 
-    await logActivity("project_deleted", "project", id, null, {
+    await logActivity("project_deleted", "project", id, authResult.id, {
       project_key: existing.key,
     });
 

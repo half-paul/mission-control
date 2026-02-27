@@ -4,13 +4,18 @@ import { issues, projects, members, labels, issueLabels } from "@/lib/db/schema"
 import { updateIssueSchema } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
 import { handleError, errorResponse } from "@/lib/errors";
+import { requireAuth, requireWrite } from "@/lib/auth";
+import { sanitizeText, sanitizeMarkdown } from "@/lib/sanitize";
 import { eq, and, isNull, inArray, sql } from "drizzle-orm";
 
 type Params = { params: Promise<{ id: string }> };
 
 // GET /api/v1/issues/[id]
-export async function GET(_req: NextRequest, { params }: Params) {
+export async function GET(req: NextRequest, { params }: Params) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+
     const { id } = await params;
     const [row] = await db
       .select({
@@ -37,7 +42,6 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
     if (!row) return errorResponse(404, "Issue not found");
 
-    // Get labels
     const issueLabelRows = await db
       .select({ id: labels.id, name: labels.name, color: labels.color })
       .from(issueLabels)
@@ -68,11 +72,15 @@ export async function GET(_req: NextRequest, { params }: Params) {
 // PATCH /api/v1/issues/[id]
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+    const writeCheck = requireWrite(authResult);
+    if (writeCheck) return writeCheck;
+
     const { id } = await params;
     const body = await req.json();
     const data = updateIssueSchema.parse(body);
 
-    // Check exists
     const [existing] = await db
       .select({ id: issues.id })
       .from(issues)
@@ -80,8 +88,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (!existing) return errorResponse(404, "Issue not found");
 
     const updateData: Record<string, unknown> = {};
-    if (data.title !== undefined) updateData.title = data.title;
-    if (data.description !== undefined) updateData.description = data.description;
+    if (data.title !== undefined) updateData.title = sanitizeText(data.title);
+    if (data.description !== undefined) updateData.description = sanitizeMarkdown(data.description);
     if (data.priority !== undefined) updateData.priority = data.priority;
     if (data.assigneeId !== undefined) updateData.assigneeId = data.assigneeId;
     if (data.dueDate !== undefined) updateData.dueDate = data.dueDate;
@@ -92,7 +100,6 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       .where(eq(issues.id, id))
       .returning();
 
-    // Update labels if provided
     if (data.labels !== undefined) {
       await db.delete(issueLabels).where(eq(issueLabels.issueId, id));
       if (data.labels.length > 0) {
@@ -108,7 +115,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       }
     }
 
-    await logActivity("issue_updated", "issue", id, null, {
+    await logActivity("issue_updated", "issue", id, authResult.id, {
       issue_key: updated.key,
       changes: Object.keys(updateData),
     });
@@ -120,8 +127,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 // DELETE /api/v1/issues/[id] — Soft delete
-export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function DELETE(req: NextRequest, { params }: Params) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+    const writeCheck = requireWrite(authResult);
+    if (writeCheck) return writeCheck;
+
     const { id } = await params;
     const [existing] = await db
       .select({ id: issues.id, key: issues.key })
@@ -134,7 +146,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
       .set({ deletedAt: sql`now()` })
       .where(eq(issues.id, id));
 
-    await logActivity("issue_deleted", "issue", id, null, {
+    await logActivity("issue_deleted", "issue", id, authResult.id, {
       issue_key: existing.key,
     });
 

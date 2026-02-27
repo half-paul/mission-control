@@ -1,7 +1,24 @@
+import { NextRequest } from "next/server";
 import { addClient, removeClient } from "@/lib/sse";
+import { verifyToken } from "@/lib/auth";
 
-// GET /api/v1/sse — Server-Sent Events stream
-export async function GET(req: Request) {
+// GET /api/v1/sse — Server-Sent Events stream (auth via query param token)
+export async function GET(req: NextRequest) {
+  // SSE can't send headers after connection, so auth via query param
+  const token =
+    req.nextUrl.searchParams.get("token") ||
+    req.headers.get("authorization")?.replace("Bearer ", "") ||
+    req.cookies.get("mc-session")?.value;
+
+  if (!token) {
+    return new Response("Authentication required", { status: 401 });
+  }
+
+  const user = await verifyToken(token);
+  if (!user) {
+    return new Response("Invalid or expired token", { status: 401 });
+  }
+
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
@@ -10,7 +27,6 @@ export async function GET(req: Request) {
         controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
       };
 
-      // Send heartbeat every 30s to keep connection alive
       const heartbeat = setInterval(() => {
         try {
           controller.enqueue(encoder.encode(`: heartbeat\n\n`));

@@ -4,12 +4,17 @@ import { members } from "@/lib/db/schema";
 import { createMemberSchema } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
 import { handleError } from "@/lib/errors";
+import { requireAuth, requireAdmin } from "@/lib/auth";
+import { sanitizeText } from "@/lib/sanitize";
 import { isNull } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 // GET /api/v1/members
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+
     const rows = await db
       .select({
         id: members.id,
@@ -30,9 +35,12 @@ export async function GET() {
   }
 }
 
-// POST /api/v1/members
+// POST /api/v1/members — Admin only
 export async function POST(req: NextRequest) {
   try {
+    const authResult = await requireAdmin(req);
+    if (authResult instanceof NextResponse) return authResult;
+
     const body = await req.json();
     const data = createMemberSchema.parse(body);
 
@@ -43,7 +51,7 @@ export async function POST(req: NextRequest) {
       .values({
         email: data.email,
         passwordHash,
-        name: data.name,
+        name: sanitizeText(data.name),
         avatarUrl: data.avatarUrl,
         role: data.role,
         agentId: data.agentId,
@@ -57,7 +65,7 @@ export async function POST(req: NextRequest) {
         createdAt: members.createdAt,
       });
 
-    await logActivity("member_created", "member", member.id, null, {
+    await logActivity("member_created", "member", member.id, authResult.id, {
       name: data.name,
       email: data.email,
     });

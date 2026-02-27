@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+// ─── Date validation helper ────────────────────────────────
+const isoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:?\d{2})?)?$/, "Must be a valid ISO-8601 date")
+  .refine((val) => !isNaN(Date.parse(val)), "Must be a parseable date");
+
 // ─── Enums ─────────────────────────────────────────────────
 export const IssueStatus = z.enum(["backlog", "todo", "in_progress", "in_review", "done"]);
 export type IssueStatus = z.infer<typeof IssueStatus>;
@@ -35,7 +41,7 @@ export const createIssueSchema = z.object({
   projectId: z.string().uuid(),
   assigneeId: z.string().uuid().optional().nullable(),
   labels: z.array(z.string()).optional().default([]),
-  dueDate: z.string().optional().nullable(),
+  dueDate: isoDate.optional().nullable(),
 });
 
 export const updateIssueSchema = z.object({
@@ -44,7 +50,7 @@ export const updateIssueSchema = z.object({
   priority: IssuePriority.optional(),
   assigneeId: z.string().uuid().optional().nullable(),
   labels: z.array(z.string()).optional(),
-  dueDate: z.string().optional().nullable(),
+  dueDate: isoDate.optional().nullable(),
 });
 
 export const transitionStatusSchema = z.object({
@@ -58,8 +64,8 @@ export const createProjectSchema = z.object({
   description: z.string().optional(),
   status: ProjectStatus.optional().default("planned"),
   ownerId: z.string().uuid(),
-  startDate: z.string().optional().nullable(),
-  targetDate: z.string().optional().nullable(),
+  startDate: isoDate.optional().nullable(),
+  targetDate: isoDate.optional().nullable(),
 });
 
 export const updateProjectSchema = z.object({
@@ -67,14 +73,23 @@ export const updateProjectSchema = z.object({
   description: z.string().optional().nullable(),
   status: ProjectStatus.optional(),
   ownerId: z.string().uuid().optional(),
-  startDate: z.string().optional().nullable(),
-  targetDate: z.string().optional().nullable(),
+  startDate: isoDate.optional().nullable(),
+  targetDate: isoDate.optional().nullable(),
 });
 
 // ─── Member Schemas ────────────────────────────────────────
+// #5: Strong password validation
+const strongPassword = z
+  .string()
+  .min(12, "Password must be at least 12 characters")
+  .regex(/[a-z]/, "Password must contain a lowercase letter")
+  .regex(/[A-Z]/, "Password must contain an uppercase letter")
+  .regex(/[0-9]/, "Password must contain a number")
+  .regex(/[^a-zA-Z0-9]/, "Password must contain a special character");
+
 export const createMemberSchema = z.object({
   email: z.string().email().max(255),
-  password: z.string().min(8),
+  password: strongPassword,
   name: z.string().min(1).max(100),
   avatarUrl: z.string().url().optional().nullable(),
   role: MemberRole.optional().default("member"),
@@ -111,8 +126,8 @@ export const createFilterSchema = z.object({
     project: z.string().uuid().optional(),
     assignee: z.string().uuid().optional(),
     label: z.array(z.string()).optional(),
-    due_before: z.string().optional(),
-    due_after: z.string().optional(),
+    due_before: isoDate.optional(),
+    due_after: isoDate.optional(),
   }),
   isDefault: z.boolean().optional().default(false),
 });
@@ -126,8 +141,8 @@ export const updateFilterSchema = z.object({
       project: z.string().uuid().optional(),
       assignee: z.string().uuid().optional(),
       label: z.array(z.string()).optional(),
-      due_before: z.string().optional(),
-      due_after: z.string().optional(),
+      due_before: isoDate.optional(),
+      due_after: isoDate.optional(),
     })
     .optional(),
   isDefault: z.boolean().optional(),
@@ -141,11 +156,17 @@ export const issueQuerySchema = z.object({
   project: z.string().uuid().optional(),
   label: z.string().optional(), // comma-separated
   q: z.string().optional(),
-  sort: z.string().optional(), // field:direction
+  sort: z
+    .string()
+    .regex(
+      /^(created_at|updated_at|title|priority|status|due_date):(asc|desc)$/,
+      "Sort must be field:direction where field is one of: created_at, updated_at, title, priority, status, due_date"
+    )
+    .optional(), // field:direction
   page: z.coerce.number().int().positive().optional().default(1),
   limit: z.coerce.number().int().positive().max(100).optional().default(50),
-  due_before: z.string().optional(),
-  due_after: z.string().optional(),
+  due_before: isoDate.optional(),
+  due_after: isoDate.optional(),
 });
 
 export const searchQuerySchema = z.object({

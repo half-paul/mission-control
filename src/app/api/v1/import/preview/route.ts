@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import { detectFormat, parseSprintBased, parseSessionBased, DEFAULT_AGENT_MAP } from "@/lib/import";
 import { handleError, errorResponse } from "@/lib/errors";
+import { requireAuth, requireWrite } from "@/lib/auth";
+import { validateProjectPath } from "@/lib/path-security";
 import { z } from "zod";
 import { basename } from "path";
 
@@ -19,23 +21,34 @@ const previewSchema = z.object({
 // POST /api/v1/import/preview
 export async function POST(req: NextRequest) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+    const writeCheck = requireWrite(authResult);
+    if (writeCheck) return writeCheck;
+
     const body = await req.json();
     const { sourcePath, options } = previewSchema.parse(body);
+
+    // #2: Path traversal protection
+    const validatedPath = validateProjectPath(sourcePath);
+    if (!validatedPath) {
+      return errorResponse(400, "Invalid project path: path traversal detected");
+    }
 
     // Find STATUS.md
     let statusContent: string;
     try {
-      statusContent = await readFile(`${sourcePath}/docs/STATUS.md`, "utf-8");
+      statusContent = await readFile(`${validatedPath}/docs/STATUS.md`, "utf-8");
     } catch {
       try {
-        statusContent = await readFile(`${sourcePath}/STATUS.md`, "utf-8");
+        statusContent = await readFile(`${validatedPath}/STATUS.md`, "utf-8");
       } catch {
         return errorResponse(404, "STATUS.md not found in project directory");
       }
     }
 
     const format = detectFormat(statusContent);
-    const projectName = basename(sourcePath);
+    const projectName = basename(validatedPath);
 
     if (format === "sprint-based") {
       const parsed = parseSprintBased(statusContent, projectName);

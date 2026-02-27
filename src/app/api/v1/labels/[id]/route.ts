@@ -4,6 +4,8 @@ import { labels } from "@/lib/db/schema";
 import { updateLabelSchema } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
 import { handleError, errorResponse } from "@/lib/errors";
+import { requireAuth, requireWrite } from "@/lib/auth";
+import { sanitizeText } from "@/lib/sanitize";
 import { eq, and, isNull, sql } from "drizzle-orm";
 
 type Params = { params: Promise<{ id: string }> };
@@ -11,6 +13,11 @@ type Params = { params: Promise<{ id: string }> };
 // PATCH /api/v1/labels/[id]
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+    const writeCheck = requireWrite(authResult);
+    if (writeCheck) return writeCheck;
+
     const { id } = await params;
     const body = await req.json();
     const data = updateLabelSchema.parse(body);
@@ -21,13 +28,16 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       .where(and(eq(labels.id, id), isNull(labels.deletedAt)));
     if (!existing) return errorResponse(404, "Label not found");
 
+    const updateData: Record<string, unknown> = { ...data };
+    if (data.name) updateData.name = sanitizeText(data.name);
+
     const [updated] = await db
       .update(labels)
-      .set(data)
+      .set(updateData)
       .where(eq(labels.id, id))
       .returning();
 
-    await logActivity("label_updated", "label", id, null, { changes: Object.keys(data) });
+    await logActivity("label_updated", "label", id, authResult.id, { changes: Object.keys(data) });
 
     return NextResponse.json(updated);
   } catch (err) {
@@ -36,8 +46,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 // DELETE /api/v1/labels/[id]
-export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function DELETE(req: NextRequest, { params }: Params) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+    const writeCheck = requireWrite(authResult);
+    if (writeCheck) return writeCheck;
+
     const { id } = await params;
     const [existing] = await db
       .select({ id: labels.id, name: labels.name })
@@ -50,7 +65,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
       .set({ deletedAt: sql`now()` })
       .where(eq(labels.id, id));
 
-    await logActivity("label_deleted", "label", id, null, { name: existing.name });
+    await logActivity("label_deleted", "label", id, authResult.id, { name: existing.name });
 
     return NextResponse.json({ success: true });
   } catch (err) {

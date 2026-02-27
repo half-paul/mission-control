@@ -4,11 +4,16 @@ import { issues, projects, members, labels, issueLabels } from "@/lib/db/schema"
 import { createIssueSchema, issueQuerySchema } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
 import { handleError, errorResponse } from "@/lib/errors";
+import { requireAuth, requireWrite } from "@/lib/auth";
+import { sanitizeText, sanitizeMarkdown } from "@/lib/sanitize";
 import { eq, and, isNull, inArray, sql, desc, asc, lte, gte, or, ilike } from "drizzle-orm";
 
 // GET /api/v1/issues — List with filtering, pagination, sorting
 export async function GET(req: NextRequest) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+
     const params = Object.fromEntries(req.nextUrl.searchParams);
     const query = issueQuerySchema.parse(params);
     const { page, limit } = query;
@@ -42,7 +47,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Parse sort
+    // #7: Sort field whitelist — validated by Zod regex, safe to use
     let orderBy = desc(issues.createdAt);
     if (query.sort) {
       const [field, dir] = query.sort.split(":");
@@ -58,7 +63,6 @@ export async function GET(req: NextRequest) {
       if (sortMap[field]) orderBy = direction(sortMap[field]);
     }
 
-    // Main query with joins
     const rows = await db
       .select({
         id: issues.id,
@@ -85,14 +89,10 @@ export async function GET(req: NextRequest) {
       .limit(limit)
       .offset(offset);
 
-    // Get total count
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(issues)
       .where(and(...conditions));
-
-    // Label filtering (if specified, filter in app layer for simplicity)
-    // TODO: optimize with subquery if needed
 
     const data = rows.map((r) => ({
       id: r.id,
@@ -122,8 +122,17 @@ export async function GET(req: NextRequest) {
 // POST /api/v1/issues — Create with atomic key generation
 export async function POST(req: NextRequest) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+    const writeCheck = requireWrite(authResult);
+    if (writeCheck) return writeCheck;
+
     const body = await req.json();
     const data = createIssueSchema.parse(body);
+
+    // #4: Sanitize inputs
+    const sanitizedTitle = sanitizeText(data.title);
+    const sanitizedDesc = sanitizeMarkdown(data.description);
 
     // Atomic key generation
     const [project] = await db
@@ -142,13 +151,14 @@ export async function POST(req: NextRequest) {
       .insert(issues)
       .values({
         key: issueKey,
-        title: data.title,
-        description: data.description,
+        title: sanitizedTitle,
+        description: sanitizedDesc,
         status: data.status,
         priority: data.priority,
         projectId: data.projectId,
         assigneeId: data.assigneeId,
         dueDate: data.dueDate,
+        createdBy: authResult.id,
       })
       .returning();
 
@@ -166,9 +176,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    await logActivity("issue_created", "issue", issue.id, null, {
+    await logActivity("issue_created", "issue", issue.id, authResult.id, {
       issue_key: issueKey,
-      title: data.title,
+      title: sanitizedTitle,
       project_id: data.projectId,
     });
 

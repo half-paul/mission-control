@@ -1,12 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { importRuns, projects, members } from "@/lib/db/schema";
+import { importRuns, projects } from "@/lib/db/schema";
 import { handleError } from "@/lib/errors";
+import { requireAuth } from "@/lib/auth";
 import { eq, desc } from "drizzle-orm";
 
 // GET /api/v1/import/history
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+
     const rows = await db
       .select({
         id: importRuns.id,

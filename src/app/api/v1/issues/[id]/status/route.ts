@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { issues } from "@/lib/db/schema";
-import { transitionStatusSchema, canTransition, IssueStatus } from "@/lib/validation";
+import { transitionStatusSchema, canTransition, STATUS_TRANSITIONS, IssueStatus } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
 import { handleError, errorResponse } from "@/lib/errors";
+import { requireAuth, requireWrite } from "@/lib/auth";
 import { eq, and, isNull } from "drizzle-orm";
 
 type Params = { params: Promise<{ id: string }> };
@@ -11,6 +12,11 @@ type Params = { params: Promise<{ id: string }> };
 // PATCH /api/v1/issues/[id]/status
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+    const writeCheck = requireWrite(authResult);
+    if (writeCheck) return writeCheck;
+
     const { id } = await params;
     const body = await req.json();
     const { status: newStatus } = transitionStatusSchema.parse(body);
@@ -27,7 +33,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       return errorResponse(400, `Cannot transition from "${currentStatus}" to "${newStatus}"`, {
         current: currentStatus,
         requested: newStatus,
-        allowed: (await import("@/lib/validation")).STATUS_TRANSITIONS[currentStatus],
+        allowed: STATUS_TRANSITIONS[currentStatus],
       });
     }
 
@@ -37,7 +43,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       .where(eq(issues.id, id))
       .returning();
 
-    await logActivity("issue_status_changed", "issue", id, null, {
+    await logActivity("issue_status_changed", "issue", id, authResult.id, {
       issue_key: existing.key,
       from: currentStatus,
       to: newStatus,

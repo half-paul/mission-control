@@ -1,14 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { readFile, stat } from "fs/promises";
 import { discoverProjects, detectFormat } from "@/lib/import";
 import { db } from "@/lib/db";
 import { projects } from "@/lib/db/schema";
 import { eq, isNull, and } from "drizzle-orm";
 import { handleError } from "@/lib/errors";
+import { requireAuth, requireWrite } from "@/lib/auth";
 
 // GET /api/v1/import/discover
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+    const writeCheck = requireWrite(authResult);
+    if (writeCheck) return writeCheck;
+
     const sources = await discoverProjects();
     const result = [];
 
@@ -25,7 +31,6 @@ export async function GET() {
         } catch { /* skip */ }
       }
 
-      // Check if project already exists in DB
       const [existing] = await db
         .select({ id: projects.id, name: projects.name })
         .from(projects)

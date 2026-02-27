@@ -1,13 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { projects, issues, members, activityLog } from "@/lib/db/schema";
 import { handleError } from "@/lib/errors";
+import { requireAuth } from "@/lib/auth";
 import { eq, and, isNull, sql, desc, lt, not } from "drizzle-orm";
 
 // GET /api/v1/dashboard
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    // Active projects with progress
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+
     const activeProjects = await db
       .select({
         id: projects.id,
@@ -23,7 +26,6 @@ export async function GET() {
       .groupBy(projects.id)
       .orderBy(projects.name);
 
-    // Overdue issues
     const overdueIssues = await db
       .select({
         id: issues.id,
@@ -47,7 +49,6 @@ export async function GET() {
       .orderBy(issues.dueDate)
       .limit(10);
 
-    // Critical issues
     const criticalIssues = await db
       .select({
         id: issues.id,
@@ -68,7 +69,6 @@ export async function GET() {
       .orderBy(desc(issues.createdAt))
       .limit(10);
 
-    // Recent activity
     const recentActivity = await db
       .select({
         id: activityLog.id,
@@ -82,6 +82,16 @@ export async function GET() {
       .orderBy(desc(activityLog.createdAt))
       .limit(20);
 
+    // My issues summary
+    const [myIssues] = await db
+      .select({
+        total: sql<number>`count(*)::int`,
+        inProgress: sql<number>`count(*) filter (where ${issues.status} = 'in_progress')::int`,
+        overdue: sql<number>`count(*) filter (where ${issues.dueDate} < CURRENT_DATE and ${issues.status} != 'done')::int`,
+      })
+      .from(issues)
+      .where(and(eq(issues.assigneeId, authResult.id), isNull(issues.deletedAt)));
+
     return NextResponse.json({
       activeProjects: activeProjects.map((p) => ({
         ...p,
@@ -90,6 +100,7 @@ export async function GET() {
       overdueIssues,
       criticalIssues,
       recentActivity,
+      myIssues,
     });
   } catch (err) {
     return handleError(err);

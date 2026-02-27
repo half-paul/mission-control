@@ -2,13 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { issues } from "@/lib/db/schema";
 import { handleError } from "@/lib/errors";
+import { requireAuth } from "@/lib/auth";
 import { eq, and, isNull, sql } from "drizzle-orm";
 
 type Params = { params: Promise<{ id: string }> };
 
 // GET /api/v1/projects/[id]/stats
-export async function GET(_req: NextRequest, { params }: Params) {
+export async function GET(req: NextRequest, { params }: Params) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+
     const { id } = await params;
     const [stats] = await db
       .select({

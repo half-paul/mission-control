@@ -3,11 +3,15 @@ import { db } from "@/lib/db";
 import { issues, projects, members } from "@/lib/db/schema";
 import { searchQuerySchema } from "@/lib/validation";
 import { handleError } from "@/lib/errors";
+import { requireAuth } from "@/lib/auth";
 import { eq, and, isNull, sql, desc } from "drizzle-orm";
 
 // GET /api/v1/issues/search?q=...
 export async function GET(req: NextRequest) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+
     const params = Object.fromEntries(req.nextUrl.searchParams);
     const { q, limit } = searchQuerySchema.parse(params);
 

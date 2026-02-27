@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { issues, members } from "@/lib/db/schema";
 import { handleError } from "@/lib/errors";
+import { requireAuth } from "@/lib/auth";
 import { eq, and, isNull, desc } from "drizzle-orm";
 
 type Params = { params: Promise<{ id: string }> };
@@ -9,6 +10,9 @@ type Params = { params: Promise<{ id: string }> };
 // GET /api/v1/projects/[id]/issues
 export async function GET(req: NextRequest, { params }: Params) {
   try {
+    const authResult = await requireAuth(req);
+    if (authResult instanceof NextResponse) return authResult;
+
     const { id } = await params;
     const rows = await db
       .select({
