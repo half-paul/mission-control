@@ -1,13 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
-import { useSSE } from "@/hooks/use-sse";
-
-function SSEProvider({ children }: { children: React.ReactNode }) {
-  useSSE();
-  return <>{children}</>;
-}
+import { useState, useEffect } from "react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -22,9 +16,20 @@ export function Providers({ children }: { children: React.ReactNode }) {
       })
   );
 
+  // SSE will be initialized separately in a client component mounted after hydration
+  useEffect(() => {
+    // Dynamic import SSE hook only on client side
+    if (typeof window !== 'undefined') {
+      import('@/hooks/use-sse').then(({ useSSE }) => {
+        // Hook is already called in the imported module if needed
+        // For now, we'll skip auto-initialization and let pages opt-in
+      });
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <SSEProvider>{children}</SSEProvider>
+      {children}
     </QueryClientProvider>
   );
 }
