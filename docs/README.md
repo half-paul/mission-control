@@ -15,10 +15,11 @@ Comprehensive documentation for the Mission Control project management system.
 - **[API Configuration](API_CONFIGURATION.md)** — API endpoints and configuration
 - **[Login Fix](LOGIN_FIX.md)** — Authentication troubleshooting and login implementation
 
-## Testing
+## Testing & Verification
 
 - **[E2E Testing Setup](E2E_TESTING_SETUP.md)** — End-to-end testing configuration and usage
 - **[Tests README](../tests/README.md)** — Unit and integration test documentation
+- **[Verify URLs](VERIFY_URLS.md)** — Verify relative URLs are working correctly
 
 ## Project Root
 
