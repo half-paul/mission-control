@@ -4,6 +4,7 @@ import { useDashboard } from "@/hooks/use-dashboard";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
 import { ProjectList } from "@/components/dashboard/project-list";
+import { AgentStats } from "@/components/dashboard/agent-stats";
 
 export default function DashboardPage() {
   const { data, isLoading, error } = useDashboard();
@@ -45,6 +46,8 @@ export default function DashboardPage() {
       </div>
 
       <StatsCards data={data} />
+
+      <AgentStats />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <ProjectList projects={data.activeProjects} />
