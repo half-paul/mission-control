@@ -1,14 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { Issue } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogHeader, DialogTitle, DialogBody } from "@/components/ui/dialog";
+import { IssueForm, IssueFormData } from "@/components/issues/issue-form";
+import { useUpdateIssueMutation } from "@/hooks/use-issues";
 import { PriorityIcon } from "@/components/issues/priority-icon";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Edit } from "lucide-react";
 
 async function fetchIssue(id: string): Promise<Issue> {
   return apiClient.get<Issue>(`/api/v1/issues/${id}`);
@@ -17,11 +22,19 @@ async function fetchIssue(id: string): Promise<Issue> {
 export default function IssueDetailPage() {
   const params = useParams();
   const id = params.id as string;
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const { data: issue, isLoading, error } = useQuery({
     queryKey: ["issue", id],
     queryFn: () => fetchIssue(id),
   });
+
+  const updateIssueMutation = useUpdateIssueMutation();
+
+  const handleUpdate = async (data: IssueFormData) => {
+    await updateIssueMutation.mutateAsync({ id, data });
+    setShowEditDialog(false);
+  };
 
   if (isLoading) {
     return (
@@ -56,44 +69,49 @@ export default function IssueDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-4">
-          <Link
-            href="/issues"
-            className="mt-1 text-zinc-400 hover:text-zinc-50"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div>
-            <div className="mb-2 flex items-center gap-3">
-              <span className="font-mono text-sm text-zinc-500">
-                {issue.key}
-              </span>
-              <Badge
-                variant="secondary"
-                className={
-                  issue.status === "done"
-                    ? "bg-green-500/10 text-green-500"
-                    : issue.status === "in_progress"
-                    ? "bg-blue-500/10 text-blue-500"
-                    : "bg-zinc-700 text-zinc-300"
-                }
-              >
-                {issue.status.replace("_", " ")}
-              </Badge>
-              <div className="flex items-center gap-1">
-                <PriorityIcon priority={issue.priority} />
-                <span className="text-sm capitalize text-zinc-400">
-                  {issue.priority}
+    <>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-4">
+            <Link
+              href="/issues"
+              className="mt-1 text-zinc-400 hover:text-zinc-50"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <div>
+              <div className="mb-2 flex items-center gap-3">
+                <span className="font-mono text-sm text-zinc-500">
+                  {issue.key}
                 </span>
+                <Badge
+                  variant="secondary"
+                  className={
+                    issue.status === "done"
+                      ? "bg-green-500/10 text-green-500"
+                      : issue.status === "in_progress"
+                      ? "bg-blue-500/10 text-blue-500"
+                      : "bg-zinc-700 text-zinc-300"
+                  }
+                >
+                  {issue.status.replace("_", " ")}
+                </Badge>
+                <div className="flex items-center gap-1">
+                  <PriorityIcon priority={issue.priority} />
+                  <span className="text-sm capitalize text-zinc-400">
+                    {issue.priority}
+                  </span>
+                </div>
               </div>
+              <h1 className="text-3xl font-bold text-zinc-50">{issue.title}</h1>
             </div>
-            <h1 className="text-3xl font-bold text-zinc-50">{issue.title}</h1>
           </div>
+          <Button onClick={() => setShowEditDialog(true)} variant="secondary">
+            <Edit className="mr-2 h-4 w-4" />
+            Edit Issue
+          </Button>
         </div>
-      </div>
 
       {/* Metadata */}
       <div className="grid gap-6 md:grid-cols-3">
@@ -210,5 +228,19 @@ export default function IssueDetailPage() {
         <p className="text-sm text-zinc-500">No activity yet</p>
       </div>
     </div>
+
+    <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+      <DialogHeader onClose={() => setShowEditDialog(false)}>
+        <DialogTitle>Edit Issue</DialogTitle>
+      </DialogHeader>
+      <DialogBody>
+        <IssueForm
+          issue={issue}
+          onSubmit={handleUpdate}
+          onCancel={() => setShowEditDialog(false)}
+        />
+      </DialogBody>
+    </Dialog>
+  </>
   );
 }

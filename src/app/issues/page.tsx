@@ -1,12 +1,22 @@
 "use client";
 
-import { useIssues } from "@/hooks/use-issues";
+import { useState } from "react";
+import { useIssues, useCreateIssueMutation } from "@/hooks/use-issues";
 import { IssueTable } from "@/components/issues/issue-table";
+import { IssueForm, IssueFormData } from "@/components/issues/issue-form";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogHeader, DialogTitle, DialogBody } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 
 export default function IssuesPage() {
   const { data: issues, isLoading, error } = useIssues();
+  const createIssueMutation = useCreateIssueMutation();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  const handleCreate = async (data: IssueFormData) => {
+    await createIssueMutation.mutateAsync(data);
+    setShowCreateDialog(false);
+  };
 
   if (isLoading) {
     return (
@@ -32,21 +42,35 @@ export default function IssuesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-50">All Issues</h1>
-          <p className="mt-2 text-zinc-400">
-            Manage and track all issues across projects
-          </p>
+    <>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-zinc-50">All Issues</h1>
+            <p className="mt-2 text-zinc-400">
+              Manage and track all issues across projects
+            </p>
+          </div>
+          <Button onClick={() => setShowCreateDialog(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Issue
+          </Button>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          New Issue
-        </Button>
+
+        <IssueTable issues={issues || []} />
       </div>
 
-      <IssueTable issues={issues || []} />
-    </div>
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogHeader onClose={() => setShowCreateDialog(false)}>
+          <DialogTitle>Create New Issue</DialogTitle>
+        </DialogHeader>
+        <DialogBody>
+          <IssueForm
+            onSubmit={handleCreate}
+            onCancel={() => setShowCreateDialog(false)}
+          />
+        </DialogBody>
+      </Dialog>
+    </>
   );
 }
