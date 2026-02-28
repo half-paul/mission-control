@@ -19,6 +19,9 @@ Comprehensive documentation for the Mission Control project management system.
 
 - **[E2E Testing Setup](E2E_TESTING_SETUP.md)** — End-to-end testing configuration and usage
 - **[Tests README](../tests/README.md)** — Unit and integration test documentation
+- **[Test Execution Report](TEST_EXECUTION_REPORT.md)** — Detailed test results and coverage metrics
+- **[Testing Report](TESTING_REPORT.md)** — Comprehensive testing report with findings
+- **[Browser Console Errors](BROWSER_CONSOLE_ERRORS.md)** — Console error testing results and analysis
 - **[Verify URLs](VERIFY_URLS.md)** — Verify relative URLs are working correctly
 
 ## Project Root

@@ -224,7 +224,7 @@ test.describe('Browser Console Errors - Authenticated', () => {
 
 test.afterAll(async () => {
   // Generate report
-  const reportPath = path.join(__dirname, '../BROWSER_CONSOLE_ERRORS.md');
+  const reportPath = path.join(__dirname, '../../docs/BROWSER_CONSOLE_ERRORS.md');
   
   let report = `# Mission Control - Browser Console Error Report\n\n`;
   report += `**Generated:** ${new Date().toISOString()}\n`;

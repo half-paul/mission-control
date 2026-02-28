@@ -1,6 +1,6 @@
 # Mission Control - Browser Console Error Report
 
-**Generated:** 2026-02-27T22:27:51.154Z
+**Generated:** 2026-02-27T23:45:23.942Z
 **Environment:** http://localhost:4000
 **Pages Tested:** 7
 
@@ -33,7 +33,7 @@ waiting for navigation until "load"
 ============================================================
 ```
 
-**Timestamp:** 2026-02-27T22:26:41.403Z
+**Timestamp:** 2026-02-27T23:44:11.216Z
 
 ---
 
@@ -50,7 +50,7 @@ waiting for navigation until "load"
 ============================================================
 ```
 
-**Timestamp:** 2026-02-27T22:26:54.753Z
+**Timestamp:** 2026-02-27T23:44:25.135Z
 
 ---
 
@@ -67,7 +67,7 @@ waiting for navigation until "load"
 ============================================================
 ```
 
-**Timestamp:** 2026-02-27T22:27:08.001Z
+**Timestamp:** 2026-02-27T23:44:39.007Z
 
 ---
 
@@ -84,7 +84,7 @@ waiting for navigation until "load"
 ============================================================
 ```
 
-**Timestamp:** 2026-02-27T22:27:21.340Z
+**Timestamp:** 2026-02-27T23:44:52.864Z
 
 ---
 
@@ -101,7 +101,7 @@ waiting for navigation until "load"
 ============================================================
 ```
 
-**Timestamp:** 2026-02-27T22:27:34.750Z
+**Timestamp:** 2026-02-27T23:45:06.737Z
 
 ---
 
@@ -118,7 +118,7 @@ waiting for navigation until "load"
 ============================================================
 ```
 
-**Timestamp:** 2026-02-27T22:27:48.150Z
+**Timestamp:** 2026-02-27T23:45:20.767Z
 
 ---
 

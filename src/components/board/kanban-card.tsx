@@ -49,7 +49,7 @@ export function KanbanCard({ issue }: KanbanCardProps) {
 
       <h3 className="mb-2 text-sm font-medium text-zinc-50">{issue.title}</h3>
 
-      {issue.labels.length > 0 && (
+      {issue.labels && issue.labels.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1">
           {issue.labels.map((label) => (
             <Badge
@@ -70,7 +70,7 @@ export function KanbanCard({ issue }: KanbanCardProps) {
       {issue.assignee && (
         <div className="flex items-center gap-2">
           <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-800 text-xs font-medium text-zinc-50">
-            {issue.assignee.name[0]}
+            {issue.assignee.name?.[0]?.toUpperCase() || '?'}
           </div>
           <span className="text-xs text-zinc-400">{issue.assignee.name}</span>
         </div>
