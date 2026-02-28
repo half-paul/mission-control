@@ -1,17 +1,16 @@
 import { test, expect } from '@playwright/test';
-import { login, clearAuth, TEST_USERS } from '../helpers/auth';
 
 /**
  * STATUS.md Import Pipeline E2E Tests
  * 
  * Tests the full import workflow: discovery → preview → execution → verification
+ * 
+ * NOTE: Uses storageState for authentication (no login needed in tests)
  */
 
 test.describe('STATUS.md Import Pipeline', () => {
-  test.beforeEach(async ({ page }) => {
-    await clearAuth(page);
-    await login(page, TEST_USERS.admin);
-  });
+  // Authentication handled by storageState (playwright.config.ts)
+  // No beforeEach needed
 
   test('User can discover projects with STATUS.md files', async ({ page }) => {
     // Navigate to import page (adjust route based on implementation)

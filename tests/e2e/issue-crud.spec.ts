@@ -1,18 +1,16 @@
 import { test, expect } from '@playwright/test';
-import { login, clearAuth, TEST_USERS } from '../helpers/auth';
 
 /**
  * Issue CRUD E2E Tests
  * 
  * Tests the full lifecycle of issue creation, editing, and deletion.
+ * 
+ * NOTE: Uses storageState for authentication (no login needed in tests)
  */
 
 test.describe('Issue CRUD Operations', () => {
-  test.beforeEach(async ({ page }) => {
-    // Start with clean auth, then log in
-    await clearAuth(page);
-    await login(page, TEST_USERS.admin);
-  });
+  // Authentication handled by storageState (playwright.config.ts)
+  // No beforeEach needed
 
   test('User can create a new issue', async ({ page }) => {
     // Navigate to issues page

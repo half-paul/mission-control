@@ -13,7 +13,7 @@ const LOGIN_ENDPOINT = `${API_BASE}/api/v1/auth/login`;
 // Test credentials (from seed data)
 const VALID_CREDENTIALS = {
   email: 'paul@example.com',
-  password: 'password123',
+  password: 'Password123!',
 };
 
 const INVALID_CREDENTIALS = {
@@ -109,7 +109,7 @@ describe('Login API - POST /api/v1/auth/login', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: 'nonexistent@example.com',
-          password: 'password123',
+          password: 'Password123!',
         }),
       });
 
@@ -124,7 +124,7 @@ describe('Login API - POST /api/v1/auth/login', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          password: 'password123',
+          password: 'Password123!',
         }),
       });
 
@@ -155,7 +155,7 @@ describe('Login API - POST /api/v1/auth/login', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: 'not-an-email',
-          password: 'password123',
+          password: 'Password123!',
         }),
       });
 

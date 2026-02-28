@@ -93,3 +93,19 @@ export function useUpdateIssueStatusMutation() {
     },
   });
 }
+
+async function deleteIssue(id: string): Promise<void> {
+  await apiClient.delete(`/api/v1/issues/${id}`);
+}
+
+export function useDeleteIssueMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteIssue,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["issues"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+  });
+}

@@ -53,9 +53,22 @@ export default defineConfig({
   
   /* Configure projects for major browsers */
   projects: [
+    // Setup project - runs once before all tests
+    { 
+      name: 'setup', 
+      testDir: './tests/setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+    
+    // Main test project - reuses authenticated state
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        // Use saved authenticated state
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
     
     // Uncomment to test on Firefox and WebKit

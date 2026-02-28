@@ -1,14 +1,20 @@
 import { test, expect } from '@playwright/test';
-import { login, logout, clearAuth, TEST_USERS } from '../helpers/auth';
+import { loginViaUI, logout, clearAuth, TEST_USERS } from '../helpers/auth';
 
 /**
  * Authentication E2E Tests
  * 
  * CRITICAL: These tests prevent regressions like the login page 404 incident.
  * All tests record video for post-deployment review.
+ * 
+ * NOTE: These tests use loginViaUI() instead of login() because they specifically
+ * test the UI login form flow (not just authenticated state).
  */
 
 test.describe('Authentication Flow', () => {
+  // Use storageState: undefined to prevent auto-loading auth cookies
+  test.use({ storageState: undefined });
+
   test.beforeEach(async ({ page }) => {
     // Start each test with a clean slate (no auth)
     await clearAuth(page);
@@ -87,7 +93,7 @@ test.describe('Authentication Flow', () => {
 
   test('User can access protected routes after login', async ({ page }) => {
     // Log in first
-    await login(page, TEST_USERS.admin);
+    await loginViaUI(page, TEST_USERS.admin);
     
     // Try to access various protected routes
     const protectedRoutes = ['/projects', '/issues', '/settings'];
@@ -108,7 +114,7 @@ test.describe('Authentication Flow', () => {
 
   test('User can log out successfully', async ({ page }) => {
     // Log in first
-    await login(page, TEST_USERS.admin);
+    await loginViaUI(page, TEST_USERS.admin);
     
     // Verify we're logged in
     expect(page.url()).not.toContain('/login');
@@ -133,7 +139,7 @@ test.describe('Authentication Flow', () => {
 
   test('Session persists across page reloads', async ({ page }) => {
     // Log in
-    await login(page, TEST_USERS.admin);
+    await loginViaUI(page, TEST_USERS.admin);
     
     // Navigate to a protected page
     await page.goto('/projects');

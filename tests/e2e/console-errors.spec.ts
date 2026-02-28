@@ -1,5 +1,5 @@
 import { test, expect, Page, ConsoleMessage } from '@playwright/test';
-import { login, clearAuth, TEST_USERS } from '../helpers/auth';
+import { clearAuth } from '../helpers/auth';
 import fs from 'fs';
 import path from 'path';
 
@@ -129,6 +129,9 @@ async function checkPage(page: Page, pagePath: string, pageName: string, isAuthe
 }
 
 test.describe('Browser Console Errors - Unauthenticated', () => {
+  // Prevent auto-loading auth cookies for unauthenticated tests
+  test.use({ storageState: undefined });
+
   test.beforeEach(async ({ page }) => {
     // Clear any existing auth
     await clearAuth(page);
@@ -178,12 +181,11 @@ test.describe('Browser Console Errors - Unauthenticated', () => {
 });
 
 test.describe('Browser Console Errors - Authenticated', () => {
+  // Uses storageState for authentication (no login needed)
+  
   test.beforeEach(async ({ page }) => {
-    // Clear auth and login
-    await clearAuth(page);
-    
-    // Set up listeners before login
-    page.on('console', (msg) => captureConsoleMessage(msg, 'login-flow', page.url()));
+    // Set up console and network listeners
+    page.on('console', (msg) => captureConsoleMessage(msg, 'authenticated', page.url()));
     page.on('response', async (response) => {
       if (response.status() >= 400) {
         networkErrors.push({
@@ -193,22 +195,6 @@ test.describe('Browser Console Errors - Authenticated', () => {
         });
       }
     });
-    
-    // Login (this will also be checked for console errors)
-    try {
-      await login(page, TEST_USERS.admin);
-      console.log('✓ Logged in successfully');
-    } catch (err) {
-      console.log('✗ Login failed:', err);
-      errors.push({
-        page: 'Login Flow',
-        url: page.url(),
-        timestamp: new Date().toISOString(),
-        type: 'error',
-        message: `Login failed: ${err}`,
-        severity: 'critical',
-      });
-    }
   });
 
   for (const { path: pagePath, name: pageName } of PAGES.filter(p => p.requiresAuth)) {

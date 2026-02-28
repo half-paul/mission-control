@@ -1,19 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { Issue } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogHeader, DialogTitle, DialogBody } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { IssueForm, IssueFormData } from "@/components/issues/issue-form";
-import { useUpdateIssueMutation } from "@/hooks/use-issues";
+import { useUpdateIssueMutation, useDeleteIssueMutation } from "@/hooks/use-issues";
 import { PriorityIcon } from "@/components/issues/priority-icon";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
-import { ArrowLeft, Edit } from "lucide-react";
+import { ArrowLeft, Edit, Trash2 } from "lucide-react";
 
 async function fetchIssue(id: string): Promise<Issue> {
   return apiClient.get<Issue>(`/api/v1/issues/${id}`);
@@ -21,8 +22,10 @@ async function fetchIssue(id: string): Promise<Issue> {
 
 export default function IssueDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const { data: issue, isLoading, error } = useQuery({
     queryKey: ["issue", id],
@@ -30,10 +33,16 @@ export default function IssueDetailPage() {
   });
 
   const updateIssueMutation = useUpdateIssueMutation();
+  const deleteIssueMutation = useDeleteIssueMutation();
 
   const handleUpdate = async (data: IssueFormData) => {
     await updateIssueMutation.mutateAsync({ id, data });
     setShowEditDialog(false);
+  };
+
+  const handleDelete = async () => {
+    await deleteIssueMutation.mutateAsync(id);
+    router.push("/issues");
   };
 
   if (isLoading) {
@@ -107,10 +116,20 @@ export default function IssueDetailPage() {
               <h1 className="text-3xl font-bold text-zinc-50">{issue.title}</h1>
             </div>
           </div>
-          <Button onClick={() => setShowEditDialog(true)} variant="secondary">
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Issue
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowEditDialog(true)} variant="outline">
+              <Edit className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
+            <Button 
+              onClick={() => setShowDeleteDialog(true)} 
+              variant="destructive"
+              data-testid="delete-issue-button"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </Button>
+          </div>
         </div>
 
       {/* Metadata */}
@@ -241,6 +260,18 @@ export default function IssueDetailPage() {
         />
       </DialogBody>
     </Dialog>
+
+    <ConfirmDialog
+      open={showDeleteDialog}
+      onOpenChange={setShowDeleteDialog}
+      title="Delete Issue"
+      description={`Are you sure you want to delete ${issue.key}: "${issue.title}"? This action cannot be undone.`}
+      confirmText="Delete Issue"
+      cancelText="Cancel"
+      variant="destructive"
+      onConfirm={handleDelete}
+      loading={deleteIssueMutation.isPending}
+    />
   </>
   );
 }
