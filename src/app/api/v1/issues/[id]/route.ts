@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { issues, projects, members, labels, issueLabels } from "@/lib/db/schema";
-import { updateIssueSchema } from "@/lib/validation";
+import { updateIssueSchema, canTransition, STATUS_TRANSITIONS, IssueStatus } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
 import { handleError, errorResponse } from "@/lib/errors";
 import { requireAuth, requireWrite, requireIssueAccess } from "@/lib/auth";
@@ -93,11 +93,57 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (data.assigneeId !== undefined) updateData.assigneeId = data.assigneeId;
     if (data.dueDate !== undefined) updateData.dueDate = data.dueDate;
 
-    const [updated] = await db
-      .update(issues)
-      .set(updateData)
-      .where(eq(issues.id, id))
-      .returning();
+    // Status change with workflow validation
+    let statusChanged = false;
+    let oldStatus: string | undefined;
+    if (data.status !== undefined) {
+      // Get current status for transition validation
+      const [current] = await db
+        .select({ status: issues.status })
+        .from(issues)
+        .where(and(eq(issues.id, id), isNull(issues.deletedAt)));
+
+      if (!current) return errorResponse(404, "Issue not found");
+
+      oldStatus = current.status!;
+      const currentStatus = current.status as IssueStatus;
+
+      if (currentStatus !== data.status) {
+        if (!canTransition(currentStatus, data.status)) {
+          return errorResponse(400, `Cannot transition from "${currentStatus}" to "${data.status}"`, {
+            current: currentStatus,
+            requested: data.status,
+            allowed: STATUS_TRANSITIONS[currentStatus],
+          });
+        }
+        updateData.status = data.status;
+        statusChanged = true;
+      }
+    }
+
+    // Guard against empty update
+    if (Object.keys(updateData).length === 0 && data.labels === undefined) {
+      // Nothing to update — return current issue
+      const [current] = await db
+        .select()
+        .from(issues)
+        .where(and(eq(issues.id, id), isNull(issues.deletedAt)));
+      return NextResponse.json(current);
+    }
+
+    let updated;
+    if (Object.keys(updateData).length > 0) {
+      [updated] = await db
+        .update(issues)
+        .set(updateData)
+        .where(eq(issues.id, id))
+        .returning();
+    } else {
+      [updated] = await db
+        .select()
+        .from(issues)
+        .where(eq(issues.id, id));
+    }
 
     if (data.labels !== undefined) {
       await db.delete(issueLabels).where(eq(issueLabels.issueId, id));
@@ -112,6 +158,14 @@ export async function PATCH(req: NextRequest, { params }: Params) {
           );
         }
       }
+    }
+
+    if (statusChanged) {
+      await logActivity("issue_status_changed", "issue", id, authResult.id, {
+        issue_key: updated.key,
+        from: oldStatus,
+        to: data.status,
+      });
     }
 
     await logActivity("issue_updated", "issue", id, authResult.id, {

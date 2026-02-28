@@ -29,8 +29,9 @@ export async function GET(req: NextRequest) {
       const priorities = query.priority.split(",");
       conditions.push(inArray(issues.priority, priorities));
     }
-    if (query.assignee) {
-      conditions.push(eq(issues.assigneeId, query.assignee));
+    const assigneeFilter = query.assignee || query.assigneeId;
+    if (assigneeFilter) {
+      conditions.push(eq(issues.assigneeId, assigneeFilter));
     }
     if (query.project) {
       conditions.push(eq(issues.projectId, query.project));

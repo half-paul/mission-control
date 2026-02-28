@@ -47,6 +47,7 @@ export const createIssueSchema = z.object({
 export const updateIssueSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().optional().nullable(),
+  status: IssueStatus.optional(),
   priority: IssuePriority.optional(),
   assigneeId: z.string().uuid().optional().nullable(),
   labels: z.array(z.string()).optional(),
@@ -153,6 +154,7 @@ export const issueQuerySchema = z.object({
   status: z.string().optional(), // comma-separated
   priority: z.string().optional(),
   assignee: z.string().uuid().optional(),
+  assigneeId: z.string().uuid().optional(), // alias for assignee
   project: z.string().uuid().optional(),
   label: z.string().optional(), // comma-separated
   q: z.string().optional(),
