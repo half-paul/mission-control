@@ -51,7 +51,7 @@ export interface Issue {
   createdAt: string;
   updatedAt: string;
   dueDate: string | null;
-  createdBy: {
+  createdBy?: {
     id: string;
     name: string;
   };

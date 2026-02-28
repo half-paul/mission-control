@@ -136,9 +136,14 @@ export default function IssueDetailPage() {
               addSuffix: true,
             })}
           </div>
-          <div className="text-xs text-zinc-500">
-            by {issue.createdBy.name}
-          </div>
+          {issue.updatedAt !== issue.createdAt && (
+            <div className="text-xs text-zinc-500">
+              Updated{" "}
+              {formatDistanceToNow(new Date(issue.updatedAt), {
+                addSuffix: true,
+              })}
+            </div>
+          )}
         </div>
       </div>
 
