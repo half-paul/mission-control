@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { TestCleanup } from '../helpers/cleanup';
 
 /**
  * IDOR (Insecure Direct Object Reference) Security Tests
@@ -16,6 +17,8 @@ const HEADERS_BASE = {
 };
 
 // Two different user tokens for cross-user testing
+const cleanup = new TestCleanup('10.0.4.1');
+
 let adminToken: string;
 let memberToken: string;
 
@@ -29,6 +32,8 @@ async function fetchAs(token: string, url: string, opts: RequestInit = {}) {
     },
   });
 }
+
+afterAll(async () => { await cleanup.run(); });
 
 beforeAll(async () => {
   // Login as admin
@@ -149,6 +154,7 @@ describe('IDOR - UUID Manipulation', () => {
     });
     if (createRes.status === 429 || !createRes.ok) return;
     const issue = await createRes.json();
+    cleanup.track(issue.id);
 
     // Delete it
     await fetchAs(adminToken, `${API}/issues/${issue.id}`, { method: 'DELETE' });

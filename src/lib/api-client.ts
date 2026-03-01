@@ -102,12 +102,13 @@ export const apiClient = {
   /**
    * DELETE request helper
    */
-  async delete<T>(path: string, options?: RequestInit): Promise<T> {
+  async delete<T>(path: string, options?: RequestInit): Promise<T | void> {
     const res = await this.fetch(path, {
       ...options,
       method: 'DELETE',
     });
     if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`);
+    if (res.status === 204) return;
     return res.json();
   },
 };

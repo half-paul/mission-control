@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { TestCleanup } from '../helpers/cleanup';
 
 /**
  * Injection Security Tests
@@ -14,6 +15,8 @@ const HEADERS_BASE = {
   'X-Forwarded-For': '10.0.5.1',
 };
 
+const cleanup = new TestCleanup('10.0.5.1');
+
 let authToken: string;
 let projectId: string;
 
@@ -27,6 +30,8 @@ async function authedFetch(url: string, opts: RequestInit = {}) {
     },
   });
 }
+
+afterAll(async () => { await cleanup.run(); });
 
 beforeAll(async () => {
   const res = await fetch(`${API}/auth/login`, {
@@ -78,6 +83,7 @@ describe('SQL Injection - Issue Endpoints', () => {
       // If created, title should be stored as literal text
       if (res.status === 201) {
         const issue = await res.json();
+        cleanup.track(issue.id);
         expect(issue.title).toBe(payload);
       }
     }
@@ -193,6 +199,7 @@ describe('Command Injection', () => {
       // If created, should store as literal text
       if (res.status === 201) {
         const issue = await res.json();
+        cleanup.track(issue.id);
         expect(issue.title).toBe(payload);
       }
     }

@@ -1,4 +1,7 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { TestCleanup } from '../helpers/cleanup';
+
+const cleanup = new TestCleanup('10.0.2.1');
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:4000';
 const API = `${BASE_URL}/api/v1`;
@@ -21,6 +24,8 @@ async function authedFetch(url: string, opts: RequestInit = {}) {
     },
   });
 }
+
+afterAll(async () => { await cleanup.run(); });
 
 beforeAll(async () => {
   const res = await fetch(`${API}/auth/login`, {
@@ -120,6 +125,7 @@ describe('Issues API - POST /issues', () => {
     expect(issue).toHaveProperty('id');
     expect(issue).toHaveProperty('key');
     expect(issue.title).toContain('API Test Issue');
+    cleanup.track(issue.id);
   });
 
   it('should return 400 for missing title', async () => {
