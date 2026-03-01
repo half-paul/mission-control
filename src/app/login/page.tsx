@@ -1,15 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { apiClient } from "@/lib/api-client";
+
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,11 +15,13 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await apiClient.fetch("/api/v1/auth/login", {
+      // Use relative URL directly (not apiClient) to ensure the cookie
+      // is set for the current origin, regardless of NEXT_PUBLIC_API_URL
+      const res = await fetch("/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        credentials: "include", // Important: include cookies
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -31,9 +31,10 @@ export default function LoginPage() {
         return;
       }
 
-      // Login successful - redirect to dashboard
-      router.push("/");
-      router.refresh(); // Force refresh to update auth state
+      // Login successful - full page redirect ensures middleware sees the cookie
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get("redirect") || "/";
+      window.location.href = redirect;
     } catch (err) {
       console.error("Login error:", err);
       setError("Network error. Please check your connection and try again.");
