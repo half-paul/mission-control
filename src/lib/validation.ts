@@ -149,6 +149,15 @@ export const updateFilterSchema = z.object({
   isDefault: z.boolean().optional(),
 });
 
+// ─── Comment Schemas ───────────────────────────────────────
+export const createCommentSchema = z.object({
+  body: z.string().min(1, "Comment body is required").max(10000, "Comment must be less than 10,000 characters").transform((val) => val.trim()),
+});
+
+export const updateCommentSchema = z.object({
+  body: z.string().min(1, "Comment body is required").max(10000, "Comment must be less than 10,000 characters").transform((val) => val.trim()),
+});
+
 // ─── Query Param Schemas ───────────────────────────────────
 export const issueQuerySchema = z.object({
   status: z.string().optional(), // comma-separated

@@ -62,9 +62,22 @@ export const issues = pgTable("issues", {
   dueDate: date("due_date"),
   externalSourceId: varchar("external_source_id", { length: 255 }).unique(),
   importMetadata: jsonb("import_metadata"),
+  commentCount: integer("comment_count").default(0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by").references(() => members.id),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+});
+
+// ─── Issue Comments ────────────────────────────────────────
+export const issueComments = pgTable("issue_comments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  issueId: uuid("issue_id").notNull().references(() => issues.id, { onDelete: "cascade" }),
+  authorId: uuid("author_id").notNull().references(() => members.id, { onDelete: "set null" }),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  editedAt: timestamp("edited_at", { withTimezone: true }),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });
 
@@ -146,6 +159,12 @@ export const issuesRelations = relations(issues, ({ one, many }) => ({
   project: one(projects, { fields: [issues.projectId], references: [projects.id] }),
   assignee: one(members, { fields: [issues.assigneeId], references: [members.id], relationName: "issueAssignee" }),
   issueLabels: many(issueLabels),
+  comments: many(issueComments),
+}));
+
+export const issueCommentsRelations = relations(issueComments, ({ one }) => ({
+  issue: one(issues, { fields: [issueComments.issueId], references: [issues.id] }),
+  author: one(members, { fields: [issueComments.authorId], references: [members.id] }),
 }));
 
 export const labelsRelations = relations(labels, ({ many }) => ({

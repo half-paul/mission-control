@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { projects, members, issues } from "@/lib/db/schema";
 import { updateProjectSchema } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
-import { handleError, errorResponse } from "@/lib/errors";
+import { handleError, errorResponse, validateUuid } from "@/lib/errors";
 import { requireAuth, requireWrite, requireProjectAccess } from "@/lib/auth";
 import { sanitizeText, sanitizeMarkdown } from "@/lib/sanitize";
 import { eq, and, isNull, sql } from "drizzle-orm";
@@ -17,6 +17,8 @@ export async function GET(req: NextRequest, { params }: Params) {
     if (authResult instanceof NextResponse) return authResult;
 
     const { id } = await params;
+    const uuidCheck = validateUuid(id);
+    if (uuidCheck) return uuidCheck;
     const [row] = await db
       .select({
         id: projects.id,
@@ -75,6 +77,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (writeCheck) return writeCheck;
 
     const { id } = await params;
+    const uuidCheck = validateUuid(id);
+    if (uuidCheck) return uuidCheck;
 
     // IDOR check: only project owner or admin can modify
     const accessCheck = await requireProjectAccess(authResult, id);
@@ -113,6 +117,8 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     if (writeCheck) return writeCheck;
 
     const { id } = await params;
+    const uuidCheck = validateUuid(id);
+    if (uuidCheck) return uuidCheck;
 
     // IDOR check: only project owner or admin can delete
     const accessCheck = await requireProjectAccess(authResult, id);

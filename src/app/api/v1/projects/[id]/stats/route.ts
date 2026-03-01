@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { issues } from "@/lib/db/schema";
-import { handleError } from "@/lib/errors";
+import { handleError, validateUuid } from "@/lib/errors";
 import { requireAuth } from "@/lib/auth";
 import { eq, and, isNull, sql } from "drizzle-orm";
 
@@ -14,6 +14,8 @@ export async function GET(req: NextRequest, { params }: Params) {
     if (authResult instanceof NextResponse) return authResult;
 
     const { id } = await params;
+    const uuidCheck = validateUuid(id);
+    if (uuidCheck) return uuidCheck;
     const [stats] = await db
       .select({
         total: sql<number>`count(*)::int`,

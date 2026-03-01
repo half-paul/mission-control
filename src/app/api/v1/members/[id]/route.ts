@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { members } from "@/lib/db/schema";
 import { updateMemberSchema } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
-import { handleError, errorResponse } from "@/lib/errors";
+import { handleError, errorResponse, validateUuid } from "@/lib/errors";
 import { requireAuth, requireAdmin, requireWrite } from "@/lib/auth";
 import { sanitizeText } from "@/lib/sanitize";
 import { eq, and, isNull, sql } from "drizzle-orm";
@@ -17,6 +17,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (authResult instanceof NextResponse) return authResult;
 
     const { id } = await params;
+    const uuidCheck = validateUuid(id);
+    if (uuidCheck) return uuidCheck;
 
     // Members can only update themselves; admins can update anyone
     if (authResult.role !== "admin" && authResult.id !== id) {
@@ -67,6 +69,8 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     if (authResult instanceof NextResponse) return authResult;
 
     const { id } = await params;
+    const uuidCheck = validateUuid(id);
+    if (uuidCheck) return uuidCheck;
 
     // Prevent self-deletion
     if (authResult.id === id) {

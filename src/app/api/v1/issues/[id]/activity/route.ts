@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { activityLog, members } from "@/lib/db/schema";
-import { handleError, errorResponse } from "@/lib/errors";
+import { handleError, errorResponse, validateUuid } from "@/lib/errors";
 import { requireAuth } from "@/lib/auth";
 import { eq, and, desc } from "drizzle-orm";
 import { z } from "zod";
@@ -20,6 +20,8 @@ export async function GET(req: NextRequest, { params }: Params) {
     if (authResult instanceof NextResponse) return authResult;
 
     const { id } = await params;
+    const uuidCheck = validateUuid(id);
+    if (uuidCheck) return uuidCheck;
     const queryParams = Object.fromEntries(req.nextUrl.searchParams);
     const { limit, offset } = querySchema.parse(queryParams);
 

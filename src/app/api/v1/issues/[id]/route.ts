@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { issues, projects, members, labels, issueLabels } from "@/lib/db/schema";
 import { updateIssueSchema, canTransition, STATUS_TRANSITIONS, IssueStatus } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
-import { handleError, errorResponse } from "@/lib/errors";
+import { handleError, errorResponse, validateUuid } from "@/lib/errors";
 import { requireAuth, requireWrite, requireIssueAccess } from "@/lib/auth";
 import { sanitizeText, sanitizeMarkdown } from "@/lib/sanitize";
 import { eq, and, isNull, inArray, sql } from "drizzle-orm";
@@ -17,6 +17,8 @@ export async function GET(req: NextRequest, { params }: Params) {
     if (authResult instanceof NextResponse) return authResult;
 
     const { id } = await params;
+    const uuidCheck = validateUuid(id);
+    if (uuidCheck) return uuidCheck;
     const [row] = await db
       .select({
         id: issues.id,
@@ -78,6 +80,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (writeCheck) return writeCheck;
 
     const { id } = await params;
+    const uuidCheck = validateUuid(id);
+    if (uuidCheck) return uuidCheck;
 
     // IDOR check: only assignee, creator, project owner, or admin can modify
     const accessCheck = await requireIssueAccess(authResult, id);
@@ -188,6 +192,8 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     if (writeCheck) return writeCheck;
 
     const { id } = await params;
+    const uuidCheck = validateUuid(id);
+    if (uuidCheck) return uuidCheck;
 
     // IDOR check: only assignee, creator, project owner, or admin can delete
     const accessCheck = await requireIssueAccess(authResult, id);

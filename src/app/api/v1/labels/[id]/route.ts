@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { labels } from "@/lib/db/schema";
 import { updateLabelSchema } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
-import { handleError, errorResponse } from "@/lib/errors";
+import { handleError, errorResponse, validateUuid } from "@/lib/errors";
 import { requireAuth, requireWrite } from "@/lib/auth";
 import { sanitizeText } from "@/lib/sanitize";
 import { eq, and, isNull, sql } from "drizzle-orm";
@@ -19,6 +19,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (writeCheck) return writeCheck;
 
     const { id } = await params;
+    const uuidCheck = validateUuid(id);
+    if (uuidCheck) return uuidCheck;
     const body = await req.json();
     const data = updateLabelSchema.parse(body);
 
@@ -54,6 +56,8 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     if (writeCheck) return writeCheck;
 
     const { id } = await params;
+    const uuidCheck = validateUuid(id);
+    if (uuidCheck) return uuidCheck;
     const [existing] = await db
       .select({ id: labels.id, name: labels.name })
       .from(labels)

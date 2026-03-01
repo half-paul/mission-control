@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { savedFilters } from "@/lib/db/schema";
 import { updateFilterSchema } from "@/lib/validation";
-import { handleError, errorResponse } from "@/lib/errors";
+import { handleError, errorResponse, validateUuid } from "@/lib/errors";
 import { requireAuth } from "@/lib/auth";
 import { eq, and } from "drizzle-orm";
 
@@ -15,6 +15,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (authResult instanceof NextResponse) return authResult;
 
     const { id } = await params;
+    const uuidCheck = validateUuid(id);
+    if (uuidCheck) return uuidCheck;
     const body = await req.json();
     const data = updateFilterSchema.parse(body);
 
@@ -44,6 +46,8 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     if (authResult instanceof NextResponse) return authResult;
 
     const { id } = await params;
+    const uuidCheck = validateUuid(id);
+    if (uuidCheck) return uuidCheck;
 
     const [existing] = await db
       .select({ id: savedFilters.id })
