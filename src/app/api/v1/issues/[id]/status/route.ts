@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { issues } from "@/lib/db/schema";
+import { sql } from "drizzle-orm";
 import { transitionStatusSchema, canTransition, STATUS_TRANSITIONS, IssueStatus } from "@/lib/validation";
 import { logActivity } from "@/lib/activity";
 import { handleError, errorResponse, validateUuid } from "@/lib/errors";
@@ -46,7 +47,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     const [updated] = await db
       .update(issues)
-      .set({ status: newStatus })
+      .set({ status: newStatus, updatedAt: sql`now()` })
       .where(eq(issues.id, id))
       .returning();
 

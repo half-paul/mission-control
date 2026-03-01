@@ -137,6 +137,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     let updated;
     if (Object.keys(updateData).length > 0) {
+      updateData.updatedAt = sql`now()`;
       [updated] = await db
         .update(issues)
         .set(updateData)
