@@ -215,7 +215,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
       issue_key: existing.key,
     });
 
-    return NextResponse.json({ success: true });
+    return new NextResponse(null, { status: 204 });
   } catch (err) {
     return handleError(err);
   }
