@@ -155,11 +155,16 @@ export interface DashboardData {
   }>;
   recentActivity: Array<{
     type: string;
-    issue?: string;
     actor: string;
     timestamp: string;
+    issue?: string;
+    project?: string;
+    label?: string;
+    comment?: string;
     from?: string;
     to?: string;
+    title?: string;
+    name?: string;
   }>;
   myIssues: {
     total: number;

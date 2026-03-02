@@ -53,18 +53,36 @@ export function KanbanBoard({ issues }: KanbanBoardProps) {
     }
 
     const issueId = active.id as string;
-    const newStatus = over.id as IssueStatus;
-
-    // Optimistic update handled by TanStack Query mutation
-    updateStatusMutation.mutate(
-      { id: issueId, status: newStatus },
-      {
-        onError: () => {
-          // TanStack Query will automatically rollback on error
-          console.error("Failed to update issue status");
-        },
+    
+    // Resolve new status from either a Column drop zone or another Issue card
+    let newStatus: IssueStatus | undefined;
+    const overData = over.data.current;
+    
+    if (overData?.type === "Column") {
+      newStatus = overData.status;
+    } else if (overData?.type === "Issue") {
+      newStatus = overData.status;
+    } else {
+      // Fallback for direct drops on column containers if data is missing
+      const possibleStatus = over.id as string;
+      if (columns.some(c => c.status === possibleStatus)) {
+        newStatus = possibleStatus as IssueStatus;
       }
-    );
+    }
+
+    const activeData = active.data.current;
+    const currentStatus = activeData?.status as IssueStatus;
+
+    if (newStatus && newStatus !== currentStatus) {
+      updateStatusMutation.mutate(
+        { id: issueId, status: newStatus },
+        {
+          onError: () => {
+            console.error("Failed to update issue status");
+          },
+        }
+      );
+    }
 
     setActiveId(null);
   };

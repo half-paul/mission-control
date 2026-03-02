@@ -106,8 +106,13 @@ export async function GET(req: NextRequest) {
           actor: activity.actorName || "Unknown",
           timestamp: activity.createdAt,
           issue: metadata?.issue_key,
+          project: metadata?.project_key || metadata?.project_name,
+          label: metadata?.label_name || metadata?.name,
+          comment: metadata?.comment_id,
           from: metadata?.from_status,
           to: metadata?.to_status,
+          title: metadata?.title || metadata?.issue_title,
+          name: metadata?.name || metadata?.project_name,
         };
       }),
       myIssues,

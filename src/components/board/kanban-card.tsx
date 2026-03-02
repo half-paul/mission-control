@@ -17,7 +17,13 @@ export function KanbanCard({ issue }: KanbanCardProps) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: issue.id });
+  } = useSortable({ 
+    id: issue.id,
+    data: {
+      type: "Issue",
+      status: issue.status,
+    },
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),

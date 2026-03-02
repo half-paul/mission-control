@@ -109,3 +109,16 @@ export function useDeleteIssueMutation() {
     },
   });
 }
+
+async function fetchIssueActivity(id: string): Promise<any[]> {
+  const response = await apiClient.get<{ data: any[] }>(`/api/v1/issues/${id}/activity`);
+  return response.data;
+}
+
+export function useIssueActivity(id: string) {
+  return useQuery({
+    queryKey: ["issue-activity", id],
+    queryFn: () => fetchIssueActivity(id),
+    enabled: !!id,
+  });
+}

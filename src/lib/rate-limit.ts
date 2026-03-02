@@ -6,8 +6,8 @@ interface RateLimitEntry {
 }
 
 const store = new Map<string, RateLimitEntry>();
-const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const MAX_REQUESTS = 100;
+const WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS || "") || 15 * 60 * 1000; // 15 minutes
+const MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_MAX || "") || 1000;
 
 // Cleanup old entries periodically
 setInterval(() => {

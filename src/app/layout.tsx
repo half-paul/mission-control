@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { GlobalModals } from "@/components/layout/global-modals";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,13 +32,14 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-zinc-50`}
       >
         <Providers>
-          <div className="flex h-screen">
+          <div className="flex min-h-screen">
             <Sidebar />
-            <div className="flex flex-1 flex-col pl-64">
+            <div className="flex flex-1 flex-col md:pl-64">
               <Header />
-              <main className="flex-1 overflow-auto p-6">{children}</main>
+              <main className="flex-1 overflow-x-hidden p-4 md:p-6">{children}</main>
             </div>
           </div>
+          <GlobalModals />
         </Providers>
       </body>
     </html>

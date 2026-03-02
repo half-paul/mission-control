@@ -14,6 +14,10 @@ interface KanbanColumnProps {
 export function KanbanColumn({ status, title, issues, count }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: status,
+    data: {
+      type: "Column",
+      status,
+    },
   });
 
   return (

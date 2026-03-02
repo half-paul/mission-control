@@ -1,12 +1,17 @@
 "use client";
 
 import { useIssues } from "@/hooks/use-issues";
+import { useAuth } from "@/hooks/use-auth";
 import { IssueTable } from "@/components/issues/issue-table";
 
 export default function MyIssuesPage() {
-  // TODO: Filter by current user's assignee ID
-  // For now, show all issues (need auth context to get current user)
-  const { data: issues, isLoading, error } = useIssues();
+  const { data: user, isLoading: authLoading } = useAuth();
+  
+  const { data: issues, isLoading: issuesLoading, error } = useIssues(
+    user?.id ? { assignee: user.id } : {}
+  );
+
+  const isLoading = authLoading || (user && issuesLoading);
 
   if (isLoading) {
     return (
@@ -31,11 +36,21 @@ export default function MyIssuesPage() {
     );
   }
 
+  if (!user) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center text-zinc-400">
+          Please log in to see your issues.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-zinc-50">My Issues</h1>
-        <p className="mt-2 text-zinc-400">Issues assigned to you</p>
+        <p className="mt-2 text-zinc-400">Issues assigned to you ({issues?.length || 0})</p>
       </div>
 
       <IssueTable issues={issues || []} />
