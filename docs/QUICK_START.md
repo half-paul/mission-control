@@ -43,7 +43,7 @@ cp .env.example .env.local
 # Edit .env.local with your settings:
 DATABASE_URL=postgresql://mc:mc@localhost:5433/mission_control
 NEXTAUTH_SECRET=dev-secret-change-in-production-minimum-32-characters-required
-NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_URL=http://localhost:4000
 NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
 
@@ -86,7 +86,7 @@ npm run dev
 ```
 
 **Servers:**
-- Frontend: http://localhost:3000
+- Frontend: http://localhost:4000
 - API: http://localhost:4000 (if separate backend)
 
 ---
@@ -112,9 +112,9 @@ npm run dev
 
 ## Access the Application
 
-1. **Visit:** http://localhost:3000
-2. **Login page:** http://localhost:3000/login
-3. **Enter credentials:** `paul@example.com` / `password123`
+1. **Visit:** http://localhost:4000
+2. **Login page:** http://localhost:4000/login
+3. **Enter credentials:** `paul@example.com` / `Password123!`
 4. **Dashboard:** Should redirect to dashboard after successful login
 
 ---
