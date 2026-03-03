@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Project, UpdateProject } from "@/types";
+import { Project, CreateProject, UpdateProject } from "@/types";
 import { apiClient } from "@/lib/api-client";
 
 async function fetchProjects(): Promise<Project[]> {
@@ -13,6 +13,10 @@ async function fetchProject(id: string): Promise<Project> {
 
 async function fetchProjectStats(id: string): Promise<any> {
   return apiClient.get<any>(`/api/v1/projects/${id}/stats`);
+}
+
+async function createProject(data: CreateProject): Promise<Project> {
+  return apiClient.post<Project>("/api/v1/projects", data);
 }
 
 async function updateProject({
@@ -49,6 +53,17 @@ export function useProjectStats(id: string) {
     queryKey: ["project-stats", id],
     queryFn: () => fetchProjectStats(id),
     enabled: !!id,
+  });
+}
+
+export function useCreateProjectMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
   });
 }
 

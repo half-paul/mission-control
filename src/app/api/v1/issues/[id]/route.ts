@@ -38,7 +38,7 @@ export async function GET(req: NextRequest, { params }: Params) {
         assigneeAvatar: members.avatarUrl,
       })
       .from(issues)
-      .innerJoin(projects, eq(issues.projectId, projects.id))
+      .leftJoin(projects, eq(issues.projectId, projects.id))
       .leftJoin(members, eq(issues.assigneeId, members.id))
       .where(and(eq(issues.id, id), isNull(issues.deletedAt)));
 
@@ -60,7 +60,9 @@ export async function GET(req: NextRequest, { params }: Params) {
       dueDate: row.dueDate,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
-      project: { id: row.projectId, name: row.projectName, key: row.projectKey },
+      project: row.projectId
+        ? { id: row.projectId, name: row.projectName, key: row.projectKey }
+        : null,
       assignee: row.assigneeId
         ? { id: row.assigneeId, name: row.assigneeName, avatar: row.assigneeAvatar }
         : null,
@@ -96,6 +98,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (data.priority !== undefined) updateData.priority = data.priority;
     if (data.assigneeId !== undefined) updateData.assigneeId = data.assigneeId;
     if (data.dueDate !== undefined) updateData.dueDate = data.dueDate;
+    if (data.projectId !== undefined) updateData.projectId = data.projectId;
+
+    // If project changed, we should ideally regenerate the key, 
+    // but for now let's just allow changing the project association.
+    // The key remains the same (Linear style: keys are permanent)
+    // or we could regenerate it. User didn't specify. 
+    // Let's keep existing key for now as it's safer for links.
 
     // Status change with workflow validation
     let statusChanged = false;

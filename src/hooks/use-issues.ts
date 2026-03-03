@@ -122,3 +122,34 @@ export function useIssueActivity(id: string) {
     enabled: !!id,
   });
 }
+
+async function fetchSubscription(id: string): Promise<{ subscribed: boolean }> {
+  return apiClient.get<{ subscribed: boolean }>(`/api/v1/issues/${id}/subscriptions`);
+}
+
+async function toggleSubscription({ id, subscribe }: { id: string; subscribe: boolean }): Promise<{ subscribed: boolean }> {
+  if (subscribe) {
+    return apiClient.post<{ subscribed: boolean }>(`/api/v1/issues/${id}/subscriptions`);
+  } else {
+    const result = await apiClient.delete<{ subscribed: boolean }>(`/api/v1/issues/${id}/subscriptions`);
+    return result || { subscribed: false };
+  }
+}
+
+export function useIssueSubscription(id: string) {
+  return useQuery({
+    queryKey: ["issue-subscription", id],
+    queryFn: () => fetchSubscription(id),
+    enabled: !!id,
+  });
+}
+
+export function useToggleSubscriptionMutation(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (subscribe: boolean) => toggleSubscription({ id, subscribe }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["issue-subscription", id] });
+    },
+  });
+}

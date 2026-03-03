@@ -4,19 +4,19 @@
 
 ### Project Management
 - [x] **Project Detail Page**: Create `/src/app/projects/[id]/page.tsx` with project stats, issues list, and settings.
-- [ ] **Create Project Modal**: Implement "New Project" button and modal form in `GlobalModals`.
-- [ ] **Project Mutations**: Add `useCreateProjectMutation`, `useUpdateProjectMutation`, and `useDeleteProjectMutation` hooks.
-- [ ] **Project Layout**: Polish `src/app/projects/page.tsx` grid and add empty states.
+- [x] **Create Project Modal**: Implement "New Project" button and modal form in `GlobalModals`.
+- [x] **Project Mutations**: Add `useCreateProjectMutation`, `useUpdateProjectMutation`, and `useDeleteProjectMutation` hooks.
+- [x] **Project Layout**: Polish `src/app/projects/page.tsx` grid and add empty states.
 
 ### Issue Experience
-- [ ] **Markdown Editor**: Replace standard `Textarea` in `IssueForm` with a markdown-capable editor (e.g., `react-md-editor`).
-- [ ] **Issue Comments**: Implement adding, editing, and deleting comments on the issue detail page.
-- [ ] **Issue Subscriptions**: Add ability for users to subscribe/watch issues.
+- [x] **Markdown Editor**: Replace standard `Textarea` in `IssueForm` with a markdown-capable editor (e.g., `react-md-editor`).
+- [x] **Issue Comments**: Implement adding, editing, and deleting comments on the issue detail page.
+- [x] **Issue Subscriptions**: Add ability for users to subscribe/watch issues.
 
 ### Global Actions & Search
-- [ ] **Command Palette (Cmd+K)**: Implement a true command palette (using `cmdk` or similar) for global search and quick actions.
-- [ ] **Global Search Page**: Create `/src/app/search/page.tsx` for comprehensive search results.
-- [ ] **Quick Navigation**: Implement keyboard shortcuts for view switching (G then I, G then B, etc.).
+- [x] **Command Palette (Cmd+K)**: Implement a true command palette (using `cmdk` or similar) for global search and quick actions.
+- [x] **Global Search Page**: Create `/src/app/search/page.tsx` for comprehensive search results.
+- [x] **Quick Navigation**: Implement keyboard shortcuts for view switching (G then I, G then B, etc.).
 
 ---
 

@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
         assigneeAvatar: members.avatarUrl,
       })
       .from(issues)
-      .innerJoin(projects, eq(issues.projectId, projects.id))
+      .leftJoin(projects, eq(issues.projectId, projects.id))
       .leftJoin(members, eq(issues.assigneeId, members.id))
       .where(and(...conditions))
       .orderBy(orderBy)
@@ -105,7 +105,9 @@ export async function GET(req: NextRequest) {
       dueDate: r.dueDate,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
-      project: { id: r.projectId, name: r.projectName, key: r.projectKey },
+      project: r.projectId
+        ? { id: r.projectId, name: r.projectName, key: r.projectKey }
+        : null,
       assignee: r.assigneeId
         ? { id: r.assigneeId, name: r.assigneeName, avatar: r.assigneeAvatar }
         : null,
@@ -136,17 +138,23 @@ export async function POST(req: NextRequest) {
     const sanitizedDesc = sanitizeMarkdown(data.description);
 
     // Atomic key generation
-    const [project] = await db
-      .update(projects)
-      .set({ nextIssueNumber: sql`${projects.nextIssueNumber} + 1` })
-      .where(eq(projects.id, data.projectId))
-      .returning({ key: projects.key, issueNumber: sql<number>`${projects.nextIssueNumber} - 1` });
+    let issueKey: string;
+    if (data.projectId) {
+      const [project] = await db
+        .update(projects)
+        .set({ nextIssueNumber: sql`${projects.nextIssueNumber} + 1` })
+        .where(eq(projects.id, data.projectId))
+        .returning({ key: projects.key, issueNumber: sql<number>`${projects.nextIssueNumber} - 1` });
 
-    if (!project) {
-      return errorResponse(404, "Project not found");
+      if (!project) {
+        return errorResponse(404, "Project not found");
+      }
+      issueKey = `${project.key}-${project.issueNumber}`;
+    } else {
+      // Uncategorized issue key
+      const randomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+      issueKey = `UNC-${randomId}`;
     }
-
-    const issueKey = `${project.key}-${project.issueNumber}`;
 
     const [issue] = await db
       .insert(issues)
@@ -156,7 +164,7 @@ export async function POST(req: NextRequest) {
         description: sanitizedDesc,
         status: data.status,
         priority: data.priority,
-        projectId: data.projectId,
+        projectId: data.projectId || null,
         assigneeId: data.assigneeId,
         dueDate: data.dueDate,
         createdBy: authResult.id,

@@ -57,7 +57,7 @@ export const issues = pgTable("issues", {
   description: text("description"),
   status: varchar("status", { length: 50 }).default("backlog"),
   priority: varchar("priority", { length: 50 }).default("medium"),
-  projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  projectId: uuid("project_id").references(() => projects.id, { onDelete: "set null" }),
   assigneeId: uuid("assignee_id").references(() => members.id, { onDelete: "set null" }),
   dueDate: date("due_date"),
   externalSourceId: varchar("external_source_id", { length: 255 }).unique(),
@@ -142,11 +142,23 @@ export const activityLog = pgTable("activity_log", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// ─── Issue Subscriptions ──────────────────────────────────
+export const issueSubscriptions = pgTable(
+  "issue_subscriptions",
+  {
+    issueId: uuid("issue_id").notNull().references(() => issues.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.issueId, table.memberId] })]
+);
+
 // ─── Relations ─────────────────────────────────────────────
 export const membersRelations = relations(members, ({ many }) => ({
   ownedProjects: many(projects, { relationName: "projectOwner" }),
   assignedIssues: many(issues, { relationName: "issueAssignee" }),
   savedFilters: many(savedFilters),
+  issueSubscriptions: many(issueSubscriptions),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -160,6 +172,7 @@ export const issuesRelations = relations(issues, ({ one, many }) => ({
   assignee: one(members, { fields: [issues.assigneeId], references: [members.id], relationName: "issueAssignee" }),
   issueLabels: many(issueLabels),
   comments: many(issueComments),
+  subscriptions: many(issueSubscriptions),
 }));
 
 export const issueCommentsRelations = relations(issueComments, ({ one }) => ({
@@ -174,4 +187,9 @@ export const labelsRelations = relations(labels, ({ many }) => ({
 export const issueLabelsRelations = relations(issueLabels, ({ one }) => ({
   issue: one(issues, { fields: [issueLabels.issueId], references: [issues.id] }),
   label: one(labels, { fields: [issueLabels.labelId], references: [labels.id] }),
+}));
+
+export const issueSubscriptionsRelations = relations(issueSubscriptions, ({ one }) => ({
+  issue: one(issues, { fields: [issueSubscriptions.issueId], references: [issues.id] }),
+  member: one(members, { fields: [issueSubscriptions.memberId], references: [members.id] }),
 }));

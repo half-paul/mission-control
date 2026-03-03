@@ -191,12 +191,14 @@ export async function requireIssueAccess(
   if (issue.assigneeId === user.id || issue.createdBy === user.id) return null;
 
   // Allow if user owns the project
-  const [project] = await db
-    .select({ ownerId: projects.ownerId })
-    .from(projects)
-    .where(eq(projects.id, issue.projectId));
+  if (issue.projectId) {
+    const [project] = await db
+      .select({ ownerId: projects.ownerId })
+      .from(projects)
+      .where(eq(projects.id, issue.projectId));
 
-  if (project?.ownerId === user.id) return null;
+    if (project?.ownerId === user.id) return null;
+  }
 
   return NextResponse.json(
     { error: "You don't have access to modify this issue" },

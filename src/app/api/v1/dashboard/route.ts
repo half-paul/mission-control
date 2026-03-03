@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
         projectName: projects.name,
       })
       .from(issues)
-      .innerJoin(projects, eq(issues.projectId, projects.id))
+      .leftJoin(projects, eq(issues.projectId, projects.id))
       .leftJoin(members, eq(issues.assigneeId, members.id))
       .where(
         and(
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
         projectName: projects.name,
       })
       .from(issues)
-      .innerJoin(projects, eq(issues.projectId, projects.id))
+      .leftJoin(projects, eq(issues.projectId, projects.id))
       .where(
         and(
           isNull(issues.deletedAt),

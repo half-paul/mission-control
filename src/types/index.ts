@@ -37,7 +37,7 @@ export interface Issue {
     id: string;
     name: string;
     key: string;
-  };
+  } | null;
   assignee: {
     id: string;
     name: string;

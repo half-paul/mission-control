@@ -5,6 +5,8 @@ import { Providers } from "@/components/providers";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { GlobalModals } from "@/components/layout/global-modals";
+import { CommandPalette } from "@/components/layout/command-palette";
+import { KeyboardShortcuts } from "@/components/layout/keyboard-shortcuts";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +42,8 @@ export default function RootLayout({
             </div>
           </div>
           <GlobalModals />
+          <CommandPalette />
+          <KeyboardShortcuts />
         </Providers>
       </body>
     </html>

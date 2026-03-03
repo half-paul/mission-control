@@ -87,7 +87,7 @@ export function IssueTable({ issues }: IssueTableProps) {
               </td>
               <td className="hidden px-4 py-4 lg:table-cell">
                 <span className="text-sm text-zinc-300">
-                  {issue.project.name}
+                  {issue.project?.name || "None"}
                 </span>
               </td>
               <td className="hidden px-4 py-4 sm:table-cell">

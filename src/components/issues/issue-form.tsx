@@ -5,7 +5,7 @@ import { Issue, IssueStatus, IssuePriority } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
 
@@ -20,7 +20,7 @@ export interface IssueFormData {
   description?: string;
   status: IssueStatus;
   priority: IssuePriority;
-  projectId: string;
+  projectId?: string | null;
   assigneeId?: string | null;
   labels: string[];
   dueDate?: string | null;
@@ -63,10 +63,6 @@ export function IssueForm({ issue, onSubmit, onCancel }: IssueFormProps) {
       .then(([projectsRes, membersRes]) => {
         setProjects(projectsRes.data);
         setMembers(membersRes.data);
-        // Set default project if creating new issue
-        if (!issue && projectsRes.data.length > 0 && !formData.projectId) {
-          setFormData((prev) => ({ ...prev, projectId: projectsRes.data[0].id }));
-        }
       })
       .catch((err) => {
         console.error("Failed to load form data:", err);
@@ -112,28 +108,25 @@ export function IssueForm({ issue, onSubmit, onCancel }: IssueFormProps) {
       {/* Description */}
       <div>
         <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+        <MarkdownEditor
+          value={formData.description || ""}
+          onChange={(value) => setFormData({ ...formData, description: value })}
           placeholder="Detailed description of the issue..."
-          rows={4}
         />
       </div>
 
       {/* Project */}
       <div>
         <Label htmlFor="project">
-          Project <span className="text-red-500">*</span>
+          Project
         </Label>
         <Select
           id="project"
-          value={formData.projectId}
-          onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
-          required
+          value={formData.projectId || ""}
+          onChange={(e) => setFormData({ ...formData, projectId: e.target.value || null })}
           disabled={!!issue} // Can't change project after creation
         >
-          <option value="">Select a project...</option>
+          <option value="">No project (Uncategorized)</option>
           {projects.map((project) => (
             <option key={project.id} value={project.id}>
               {project.name} ({project.key})
