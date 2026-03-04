@@ -18,7 +18,7 @@ services:
       - PROJECTS_PATH=/data/projects
       # Note: NEXT_PUBLIC_* vars are set at BUILD time (see build.args above)
     volumes:
-      - /home/paul/.openclaw/workspace/projects:/data/projects:ro
+      - /Users/paul/Documents/development:/data/projects:ro
     depends_on:
       postgres:
         condition: service_healthy
